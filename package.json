@@ -17,7 +17,14 @@
     "type-check": "turbo run type-check",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:deploy": "firebase deploy",
+    "firebase:deploy:functions": "firebase deploy --only functions",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules,storage",
+    "firebase:login": "firebase login",
+    "firebase:use:staging": "firebase use staging",
+    "firebase:use:prod": "firebase use prod"
   },
   "devDependencies": {
     "@turbo/gen": "^1.12.4",
