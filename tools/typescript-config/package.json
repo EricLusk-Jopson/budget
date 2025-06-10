@@ -1,0 +1,14 @@
+{
+  "name": "@budget/typescript-config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build needed for typescript-config'"
+  },
+  "files": [
+    "base.json",
+    "node.json",
+    "react.json"
+  ]
+}

@@ -1,0 +1,9 @@
+packages:
+  # All packages in the packages directory
+  - 'packages/*'
+  # All apps in the apps directory
+  - 'apps/*'
+  # Firebase functions
+  - 'firebase/functions'
+  # Development tools
+  - 'tools/*'

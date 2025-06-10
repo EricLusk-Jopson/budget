@@ -1,0 +1,25 @@
+{
+  "name": "@budget/core",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@budget/eslint-config": "workspace:*",
+    "@budget/jest-config": "workspace:*",
+    "@budget/typescript-config": "workspace:*",
+    "typescript": "^5.3.3"
+  }
+}
