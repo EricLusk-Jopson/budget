@@ -1,0 +1,25 @@
+{
+  "name": "@budget/api",
+  "version": "1.0.0",
+  "description": "Firebase API layer for budget app",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@budget/core": "workspace:*",
+    "firebase": "^11.9.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "budget",
+    "firebase",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC"
+}
