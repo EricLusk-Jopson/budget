@@ -1,18 +1,142 @@
-rules_version='2'
-
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 7, 10);
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isBudgetOwner(budgetId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/budgets/$(budgetId)) &&
+             get(/databases/$(database)/documents/budgets/$(budgetId)).data.ownerId == request.auth.uid;
+    }
+    
+    function hasbudgetAccess(budgetId) {
+      return isAuthenticated() && (
+        // Owner access
+        isBudgetOwner(budgetId) ||
+        // Shared access
+        exists(/databases/$(database)/documents/budgets/$(budgetId)/sharedWith/$(request.auth.uid))
+      );
+    }
+    
+    function hasBudgetWriteAccess(budgetId) {
+      return isAuthenticated() && (
+        // Owner always has write access
+        isBudgetOwner(budgetId) ||
+        // Shared users with editor or admin role
+        (exists(/databases/$(database)/documents/budgets/$(budgetId)/sharedWith/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/budgets/$(budgetId)/sharedWith/$(request.auth.uid)).data.role in ['editor', 'admin'])
+      );
+    }
+    
+    // Validation functions
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['type', 'date', 'createdAt', 'updatedAt']) &&
+             data.type in ['income', 'expense', 'transfer'] &&
+             data.date is timestamp &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+    
+    function isValidPool(data) {
+      return data.keys().hasAll(['name', 'purposeType', 'isActive', 'icon', 'color']) &&
+             data.purposeType in ['spending', 'saving', 'goal'] &&
+             data.isActive is bool &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 50;
+    }
+    
+    function isValidChannel(data) {
+      return data.keys().hasAll(['name', 'type', 'isActive']) &&
+             data.type in ['cash', 'checking', 'savings', 'credit'] &&
+             data.isActive is bool &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 50;
+    }
+    
+    function isValidAllocationStrategy(data) {
+      return data.keys().hasAll(['name', 'effectiveFrom', 'allocations', 'isActive']) &&
+             data.allocations is list &&
+             data.allocations.size() > 0 &&
+             data.isActive is bool;
+    }
+
+    // User profiles - users can only access their own profile
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Budgets - top level budget documents
+    match /budgets/{budgetId} {
+      allow read: if hasbudgetAccess(budgetId);
+      allow write: if hasBudgetWriteAccess(budgetId);
+      allow create: if isAuthenticated() && 
+                       request.resource.data.ownerId == request.auth.uid;
+      
+      // Pools subcollection
+      match /pools/{poolId} {
+        allow read: if hasbudgetAccess(budgetId);
+        allow write: if hasBudgetWriteAccess(budgetId) && 
+                        isValidPool(request.resource.data);
+      }
+      
+      // Channels subcollection  
+      match /channels/{channelId} {
+        allow read: if hasbudgetAccess(budgetId);
+        allow write: if hasBudgetWriteAccess(budgetId) && 
+                        isValidChannel(request.resource.data);
+      }
+      
+      // Allocation strategies subcollection
+      match /allocationStrategies/{strategyId} {
+        allow read: if hasbudgetAccess(budgetId);
+        allow write: if hasBudgetWriteAccess(budgetId) && 
+                        isValidAllocationStrategy(request.resource.data);
+      }
+      
+      // Transactions subcollection
+      match /transactions/{transactionId} {
+        allow read: if hasbudgetAccess(budgetId);
+        allow write: if hasBudgetWriteAccess(budgetId) && 
+                        isValidTransaction(request.resource.data);
+      }
+      
+      // Current balance (singleton document)
+      match /currentBalance/{docId} {
+        allow read: if hasbudgetAccess(budgetId);
+        // Only Cloud Functions should write balance data
+        allow write: if false;
+      }
+      
+      // Balance history subcollection
+      match /balanceHistory/{snapshotId} {
+        allow read: if hasbudgetAccess(budgetId);
+        // Only Cloud Functions should write balance history
+        allow write: if false;
+      }
+      
+      // Expense categories subcollection
+      match /expenseCategories/{categoryId} {
+        allow read: if hasbudgetAccess(budgetId);
+        allow write: if hasBudgetWriteAccess(budgetId);
+        
+        // Subcategories within categories
+        match /subcategories/{subcategoryId} {
+          allow read: if hasbudgetAccess(budgetId);
+          allow write: if hasBudgetWriteAccess(budgetId);
+        }
+      }
+      
+      // Shared users subcollection
+      match /sharedWith/{sharedUserId} {
+        allow read: if hasbudgetAccess(budgetId);
+        allow write: if isBudgetOwner(budgetId); // Only owner can manage sharing
+      }
     }
   }
 }
