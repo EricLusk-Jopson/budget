@@ -3,11 +3,6 @@
     "rules": "firebase/firestore.rules",
     "indexes": "firebase/firestore.indexes.json"
   },
-  "functions": {
-    "source": "firebase/functions",
-    "codebase": "default",
-    "runtime": "nodejs18"
-  },
   "hosting": {
     "public": "apps/web/dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
@@ -18,14 +13,9 @@
       }
     ]
   },
-  "storage": {
-    "rules": "firebase/storage.rules"
-  },
   "emulators": {
     "auth": { "port": 9099 },
     "firestore": { "port": 8080 },
-    "functions": { "port": 5001 },
-    "hosting": { "port": 5000 },
     "ui": { "enabled": true, "port": 4000 }
   }
 }

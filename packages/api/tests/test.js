@@ -1,4 +1,4 @@
-import { getPools } from "./src/operations/pools.js";
+import { getPools } from "../src/operations/pools.js";
 
 async function test() {
   try {

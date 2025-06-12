@@ -33,7 +33,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "packages/core/jest.config.js",
-    "packages/api/test.js"
+    "packages/api/tests/test.js"
   ],
   "exclude": ["node_modules", "dist", "build"]
 }
