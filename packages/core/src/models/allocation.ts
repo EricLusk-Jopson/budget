@@ -1,5 +1,3 @@
-// packages/core/src/models/allocation.ts
-
 import { z } from "zod";
 
 /**

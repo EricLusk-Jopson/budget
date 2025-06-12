@@ -1,5 +1,3 @@
-// packages/core/src/models/user.ts
-
 import { z } from "zod";
 
 /**
