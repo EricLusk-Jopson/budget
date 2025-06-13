@@ -1,25 +1,46 @@
 {
   "name": "@budget/api",
-  "version": "1.0.0",
-  "description": "Firebase API layer for budget app",
-  "type": "module",
-  "main": "src/index.ts",
+  "version": "0.1.0",
+  "description": "Firebase API integration for values-based budget app",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node test.js"
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:config": "ts-node tests/test-config.js",
+    "lint": "eslint src --ext .ts,.tsx",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@budget/core": "workspace:*",
-    "firebase": "^11.9.1"
+    "firebase": "^10.7.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@budget/eslint-config": "*",
+    "@budget/jest-config": "*",
+    "@budget/typescript-config": "*",
+    "@types/node": "^24.0.1",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
   },
-  "keywords": [
-    "budget",
-    "firebase",
-    "api"
-  ],
-  "author": "",
-  "license": "ISC"
+  "peerDependencies": {
+    "@budget/core": "*"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./firebase": {
+      "import": "./dist/firebase.js",
+      "require": "./dist/firebase.js",
+      "types": "./dist/firebase.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
 }
