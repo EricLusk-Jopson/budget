@@ -1,14 +1,21 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 export const BudgetSchema = z.object({
-  id: z.string().min(1, "Budget ID is required"),
-  name: z.string().min(1, "Budget name is required").max(100),
-  description: z.string().max(500).optional(),
+  id: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.BUDGET_NAME_REQUIRED)
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(500, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   currency: z
     .string()
-    .length(3, "Currency must be 3-letter ISO code")
+    .length(3, ValidationErrorCodes.FIELD_INVALID_CURRENCY)
     .default("USD"),
-  ownerId: z.string().min(1, "Owner ID is required"),
+  ownerId: z.string().min(1, ValidationErrorCodes.OWNER_ID_REQUIRED),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -16,19 +23,28 @@ export const BudgetSchema = z.object({
 export type Budget = z.infer<typeof BudgetSchema>;
 
 export const SharedUserSchema = z.object({
-  userId: z.string().min(1, "User ID is required"),
+  userId: z.string().min(1, ValidationErrorCodes.USER_ID_REQUIRED),
   role: z.enum(["viewer", "editor", "admin"]),
   addedAt: z.date(),
-  addedBy: z.string().min(1, "Added by user ID is required"),
+  addedBy: z.string().min(1, ValidationErrorCodes.USER_ID_REQUIRED),
 });
 
 export type SharedUser = z.infer<typeof SharedUserSchema>;
 
 export const CreateBudgetSchema = z.object({
-  name: z.string().min(1, "Budget name is required").max(100),
-  description: z.string().max(500).optional(),
-  currency: z.string().length(3).default("USD"),
-  ownerId: z.string().min(1, "Owner ID is required"),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.BUDGET_NAME_REQUIRED)
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(500, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
+  currency: z
+    .string()
+    .length(3, ValidationErrorCodes.FIELD_INVALID_CURRENCY)
+    .default("USD"),
+  ownerId: z.string().min(1, ValidationErrorCodes.OWNER_ID_REQUIRED),
 });
 
 export type CreateBudget = z.infer<typeof CreateBudgetSchema>;

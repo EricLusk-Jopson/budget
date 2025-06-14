@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 import {
   AllocationBreakdownSchema,
   CreateAllocationBreakdownSchema,
@@ -9,10 +10,10 @@ import { CategoryReferenceSchema } from "./category";
  * Base transaction fields shared across all transaction types
  */
 export const BaseTransactionSchema = z.object({
-  id: z.string().min(1, "Transaction ID is required"),
-  budgetId: z.string().min(1, "Budget ID is required"),
+  id: z.string().min(1, ValidationErrorCodes.FIELD_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
   date: z.date(),
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -22,9 +23,14 @@ export const BaseTransactionSchema = z.object({
  */
 export const IncomeTransactionSchema = BaseTransactionSchema.extend({
   type: z.literal("income"),
-  channelId: z.string().min(1, "Channel ID is required"),
-  amount: z.number().positive("Income amount must be positive"),
-  source: z.string().min(1, "Income source is required").max(100), // User-defined source
+  channelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
+  amount: z.number().positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID),
+  source: z
+    .string()
+    .min(1, ValidationErrorCodes.FIELD_REQUIRED)
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG), // User-defined source
   allocationBreakdown: AllocationBreakdownSchema, // Defaults from strategy, user can override
 });
 
@@ -35,8 +41,10 @@ export type IncomeTransaction = z.infer<typeof IncomeTransactionSchema>;
  */
 export const ExpenseTransactionSchema = BaseTransactionSchema.extend({
   type: z.literal("expense"),
-  channelId: z.string().min(1, "Channel ID is required"),
-  amount: z.number().positive("Expense amount must be positive"),
+  channelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
+  amount: z.number().positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID),
   category: CategoryReferenceSchema, // User-defined category and subcategory
   allocationBreakdown: AllocationBreakdownSchema, // Defaults to single pool, can be split
 });
@@ -48,15 +56,22 @@ export type ExpenseTransaction = z.infer<typeof ExpenseTransactionSchema>;
  */
 export const TransferTransactionSchema = BaseTransactionSchema.extend({
   type: z.literal("transfer"),
-  amount: z.number().positive("Transfer amount must be positive"),
-  description: z.string().min(1, "Transfer description is required").max(200),
+  amount: z.number().positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID),
+  description: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_DESCRIPTION_EMPTY)
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG),
 
   // Source information
-  sourceChannelId: z.string().min(1, "Source channel ID is required"),
+  sourceChannelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
   sourceAllocation: AllocationBreakdownSchema, // What pools the money comes from
 
   // Destination information
-  destinationChannelId: z.string().min(1, "Destination channel ID is required"),
+  destinationChannelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
   destinationAllocation: AllocationBreakdownSchema, // What pools the money goes to
 });
 
@@ -77,13 +92,18 @@ export type Transaction = z.infer<typeof TransactionSchema>;
  * Income transaction creation input
  */
 export const CreateIncomeTransactionSchema = z.object({
-  budgetId: z.string().min(1, "Budget ID is required"),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
   date: z.date(),
-  channelId: z.string().min(1, "Channel ID is required"),
-  amount: z.number().positive("Income amount must be positive"),
-  source: z.string().min(1, "Income source is required").max(100),
+  channelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
+  amount: z.number().positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID),
+  source: z
+    .string()
+    .min(1, ValidationErrorCodes.FIELD_REQUIRED)
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG),
   allocationBreakdown: CreateAllocationBreakdownSchema,
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
 });
 
 export type CreateIncomeTransaction = z.infer<
@@ -94,13 +114,15 @@ export type CreateIncomeTransaction = z.infer<
  * Expense transaction creation input
  */
 export const CreateExpenseTransactionSchema = z.object({
-  budgetId: z.string().min(1, "Budget ID is required"),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
   date: z.date(),
-  channelId: z.string().min(1, "Channel ID is required"),
-  amount: z.number().positive("Expense amount must be positive"),
+  channelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
+  amount: z.number().positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID),
   category: CategoryReferenceSchema,
   allocationBreakdown: CreateAllocationBreakdownSchema,
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
 });
 
 export type CreateExpenseTransaction = z.infer<
@@ -112,18 +134,35 @@ export type CreateExpenseTransaction = z.infer<
  */
 export const CreateTransferTransactionSchema = z
   .object({
-    budgetId: z.string().min(1, "Budget ID is required"),
+    budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
     date: z.date(),
-    amount: z.number().positive("Transfer amount must be positive"),
-    description: z.string().min(1, "Transfer description is required").max(200),
-    sourceChannelId: z.string().min(1, "Source channel ID is required"),
+    amount: z
+      .number()
+      .positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID),
+    description: z
+      .string()
+      .min(1, ValidationErrorCodes.TRANSACTION_DESCRIPTION_EMPTY)
+      .max(200, ValidationErrorCodes.FIELD_TOO_LONG),
+    sourceChannelId: z
+      .string()
+      .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
     sourceAllocation: CreateAllocationBreakdownSchema,
     destinationChannelId: z
       .string()
-      .min(1, "Destination channel ID is required"),
+      .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND),
     destinationAllocation: CreateAllocationBreakdownSchema,
-    notes: z.string().max(500).optional(),
+    notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   })
+  .refine(
+    (data) => {
+      // Source and destination channels cannot be the same
+      return data.sourceChannelId !== data.destinationChannelId;
+    },
+    {
+      message: ValidationErrorCodes.SOURCE_DESTINATION_SAME,
+      path: ["destinationChannelId"],
+    }
+  )
   .refine(
     (data) => {
       // Source and destination allocations must equal the transfer amount
@@ -133,7 +172,7 @@ export const CreateTransferTransactionSchema = z
       );
     },
     {
-      message: "Source and destination allocations must equal transfer amount",
+      message: ValidationErrorCodes.TRANSACTION_ALLOCATION_MISMATCH,
       path: ["amount"],
     }
   );
@@ -147,11 +186,21 @@ export type CreateTransferTransaction = z.infer<
  */
 export const UpdateIncomeTransactionSchema = z.object({
   date: z.date().optional(),
-  channelId: z.string().min(1, "Channel ID is required").optional(),
-  amount: z.number().positive("Income amount must be positive").optional(),
-  source: z.string().min(1, "Income source is required").max(100).optional(),
+  channelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND)
+    .optional(),
+  amount: z
+    .number()
+    .positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID)
+    .optional(),
+  source: z
+    .string()
+    .min(1, ValidationErrorCodes.FIELD_REQUIRED)
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   allocationBreakdown: CreateAllocationBreakdownSchema.optional(),
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   updatedAt: z.date(),
 });
 
@@ -161,11 +210,17 @@ export type UpdateIncomeTransaction = z.infer<
 
 export const UpdateExpenseTransactionSchema = z.object({
   date: z.date().optional(),
-  channelId: z.string().min(1, "Channel ID is required").optional(),
-  amount: z.number().positive("Expense amount must be positive").optional(),
+  channelId: z
+    .string()
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND)
+    .optional(),
+  amount: z
+    .number()
+    .positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID)
+    .optional(),
   category: CategoryReferenceSchema.optional(),
   allocationBreakdown: CreateAllocationBreakdownSchema.optional(),
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   updatedAt: z.date(),
 });
 
@@ -175,23 +230,26 @@ export type UpdateExpenseTransaction = z.infer<
 
 export const UpdateTransferTransactionSchema = z.object({
   date: z.date().optional(),
-  amount: z.number().positive("Transfer amount must be positive").optional(),
+  amount: z
+    .number()
+    .positive(ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID)
+    .optional(),
   description: z
     .string()
-    .min(1, "Transfer description is required")
-    .max(200)
+    .min(1, ValidationErrorCodes.TRANSACTION_DESCRIPTION_EMPTY)
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
     .optional(),
   sourceChannelId: z
     .string()
-    .min(1, "Source channel ID is required")
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND)
     .optional(),
   sourceAllocation: CreateAllocationBreakdownSchema.optional(),
   destinationChannelId: z
     .string()
-    .min(1, "Destination channel ID is required")
+    .min(1, ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND)
     .optional(),
   destinationAllocation: CreateAllocationBreakdownSchema.optional(),
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   updatedAt: z.date(),
 });
 

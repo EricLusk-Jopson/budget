@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * Individual pool balance within a specific channel
  */
 export const PoolBalanceSchema = z.object({
-  poolId: z.string().min(1, "Pool ID is required"),
-  channelId: z.string().min(1, "Channel ID is required"),
+  poolId: z.string().min(1, ValidationErrorCodes.POOL_ID_REQUIRED),
+  channelId: z.string().min(1, ValidationErrorCodes.CHANNEL_ID_REQUIRED),
   amount: z.number(), // Can be negative for credit accounts
 });
 
@@ -15,11 +16,11 @@ export type PoolBalance = z.infer<typeof PoolBalanceSchema>;
  * Current balance state - represents the current balance of all pool/channel combinations
  */
 export const CurrentBalanceSchema = z.object({
-  id: z.string().min(1, "Balance ID is required"),
-  budgetId: z.string().min(1, "Budget ID is required"),
+  id: z.string().min(1, ValidationErrorCodes.FIELD_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
   balances: z.array(PoolBalanceSchema),
   lastUpdated: z.date(),
-  updatedBy: z.string().min(1, "Updated by user ID is required"), // For audit trail
+  updatedBy: z.string().min(1, ValidationErrorCodes.USER_ID_REQUIRED), // For audit trail
 });
 
 export type CurrentBalance = z.infer<typeof CurrentBalanceSchema>;
@@ -28,8 +29,8 @@ export type CurrentBalance = z.infer<typeof CurrentBalanceSchema>;
  * Historic balance snapshot - captures complete state at a specific point in time
  */
 export const BalanceSnapshotSchema = z.object({
-  id: z.string().min(1, "Snapshot ID is required"),
-  budgetId: z.string().min(1, "Budget ID is required"),
+  id: z.string().min(1, ValidationErrorCodes.FIELD_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
   snapshotDate: z.date(), // The date this snapshot represents
   balances: z.array(PoolBalanceSchema),
   createdAt: z.date(), // When the snapshot was created
@@ -119,7 +120,7 @@ export const getPoolChannelBalance = (
   const balance = balances.find(
     (b) => b.poolId === poolId && b.channelId === channelId
   );
-  return balance?.amount || 0;
+  return balance?.amount ?? 0;
 };
 
 /**

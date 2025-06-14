@@ -193,7 +193,7 @@ export const validateAllocationAgainstBalances = (
       errors.push({
         poolId: item.poolId,
         requested: Math.abs(item.amount),
-        available: available?.availableAmount || 0,
+        available: available?.availableAmount ?? 0,
       });
     }
   });

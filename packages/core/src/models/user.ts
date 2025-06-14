@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * User theme preferences
@@ -11,7 +12,10 @@ export type Theme = z.infer<typeof ThemeSchema>;
  */
 export const UserPreferencesSchema = z.object({
   theme: ThemeSchema.default("system"),
-  currency: z.string().length(3).default("USD"), // ISO 4217 currency codes
+  currency: z
+    .string()
+    .length(3, ValidationErrorCodes.FIELD_INVALID_CURRENCY)
+    .default("USD"), // ISO 4217 currency codes
   dateFormat: z
     .enum(["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"])
     .default("MM/DD/YYYY"),
@@ -24,10 +28,13 @@ export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
  * Core user profile information
  */
 export const UserProfileSchema = z.object({
-  id: z.string().min(1, "User ID is required"),
-  displayName: z.string().min(1, "Display name is required").max(100),
-  email: z.string().email("Valid email is required"),
-  photoURL: z.string().url().optional(),
+  id: z.string().min(1, ValidationErrorCodes.USER_ID_REQUIRED),
+  displayName: z
+    .string()
+    .min(1, ValidationErrorCodes.DISPLAY_NAME_REQUIRED)
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG),
+  email: z.string().email(ValidationErrorCodes.EMAIL_INVALID),
+  photoURL: z.string().url(ValidationErrorCodes.FIELD_INVALID_URL).optional(),
   createdAt: z.date(),
   lastLogin: z.date(),
   preferences: UserPreferencesSchema,
