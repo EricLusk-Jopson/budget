@@ -39,7 +39,11 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**/*.ts"],
+      files: [
+        "**/*.test.(ts|tsx|js|jsx)",
+        "**/*.spec.(ts|tsx|js|jsx)",
+        "**/__tests__/**/*.(ts|tsx|js|jsx)",
+      ],
       parserOptions: {
         project: "./tsconfig.test.json",
         tsconfigRootDir: __dirname,

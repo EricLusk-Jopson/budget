@@ -4,7 +4,7 @@ module.exports = {
   ...baseConfig,
   displayName: "core",
   transform: {
-    "^.+\\.(ts|tsx)$": [
+    "^.+\\.(ts|tsx|js|jsx)$": [
       "ts-jest",
       {
         tsconfig: "tsconfig.test.json",

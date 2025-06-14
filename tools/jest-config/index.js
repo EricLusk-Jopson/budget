@@ -3,9 +3,12 @@ module.exports = {
   testEnvironment: "node",
   roots: ["<rootDir>/src"],
   setupFilesAfterEnv: [],
-  testMatch: ["**/__tests__/**/*.(ts|tsx)", "**/*.(test|spec).(ts|tsx)"],
+  testMatch: [
+    "**/__tests__/**/*.(ts|tsx|js|jsx)",
+    "**/*.(test|spec).(ts|tsx|js|jsx)",
+  ],
   transform: {
-    "^.+\\.(ts|tsx)$": [
+    "^.+\\.(ts|tsx|js|jsx)$": [
       "ts-jest",
       {
         tsconfig: "tsconfig.test.json",
