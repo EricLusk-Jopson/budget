@@ -85,6 +85,9 @@ importers:
       eslint:
         specifier: ^8.56.0
         version: 8.57.1
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.57.1)
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.19.0)
@@ -2255,7 +2258,6 @@ packages:
       eslint: '>=7.0.0'
     dependencies:
       eslint: 8.57.1
-    dev: false
 
   /eslint-scope@7.2.2:
     resolution: {integrity: sha512-dOt21O7lTMhDM+X9mB4GX+DZrZtCUJPL/wlcTqxyrx5IvO0IYtILdtrQGQp+8n5S0gwSVmOf9NQrjMOgfQZlIg==}

@@ -15,4 +15,9 @@ module.exports = {
     "prefer-const": "error",
     "no-var": "error",
   },
+  // Added this to help with dependency resolution
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: "module",
+  },
 };
