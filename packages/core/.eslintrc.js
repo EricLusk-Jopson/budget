@@ -12,19 +12,24 @@ module.exports = {
     ecmaVersion: 2022,
     sourceType: "module",
   },
+  ignorePatterns: ["dist", "node_modules", "build", "jest.config.js"],
   rules: {
-    // Basic ESLint rules
+    // Basic ESLint rules (replacing eslint:recommended)
     "no-unused-vars": "off",
     "no-var": "error",
     "prefer-const": "error",
+    "no-undef": "error",
+    "no-console": "warn",
 
-    // TypeScript rules (less strict for development)
+    // TypeScript rules (replacing @typescript-eslint/recommended)
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-var-requires": "error",
-    "@typescript-eslint/prefer-nullish-coalescing": "warn", // Changed from error to warn
-    "@typescript-eslint/prefer-optional-chain": "warn", // Changed from error to warn
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
+    "@typescript-eslint/prefer-optional-chain": "warn",
     "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-inferrable-types": "error",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error",
   },
   overrides: [
     {
@@ -50,8 +55,8 @@ module.exports = {
       rules: {
         // Relax rules for test files
         "@typescript-eslint/no-explicit-any": "off",
+        "no-console": "off",
       },
     },
   ],
-  ignorePatterns: ["dist", "node_modules", "build"],
 };

@@ -531,8 +531,7 @@ export class ValidationService {
     // For now, we'll validate the basic constraint structure
 
     if (
-      !transfer.sourceAllocation ||
-      !transfer.sourceAllocation.items ||
+      !transfer.sourceAllocation?.items ||
       transfer.sourceAllocation.items.length === 0
     ) {
       errors.push({
@@ -556,8 +555,8 @@ export class ValidationService {
     let maxPayment = 0;
 
     for (const item of sourceAllocation.items) {
-      const availableInPool = availableBalances.get(item.poolId) || 0;
-      const debtInPool = creditDebt.get(item.poolId) || 0;
+      const availableInPool = availableBalances.get(item.poolId) ?? 0;
+      const debtInPool = creditDebt.get(item.poolId) ?? 0;
 
       // Can only pay up to the minimum of available balance and debt for each pool
       const maxForThisPool = Math.min(availableInPool, debtInPool);
@@ -743,7 +742,7 @@ export class ValidationService {
 
       // Check source channel for transfers
       if (transaction.type === "transfer") {
-        const transfer = transaction as TransferTransaction;
+        const transfer = transaction;
         if (!channelIds.has(transfer.sourceChannelId)) {
           errors.push({
             code: ValidationErrorCodes.DATA_INTEGRITY_ORPHANED_REFERENCE,
@@ -768,9 +767,7 @@ export class ValidationService {
 
       // Check pool references in allocations
       if (transaction.type === "income" || transaction.type === "expense") {
-        const transactionWithAllocation = transaction as
-          | IncomeTransaction
-          | ExpenseTransaction;
+        const transactionWithAllocation = transaction;
         if (transactionWithAllocation.allocationBreakdown) {
           for (const item of transactionWithAllocation.allocationBreakdown
             .items) {
@@ -787,7 +784,7 @@ export class ValidationService {
 
       // Check source and destination allocations for transfers
       if (transaction.type === "transfer") {
-        const transfer = transaction as TransferTransaction;
+        const transfer = transaction;
 
         // Check source allocation
         if (transfer.sourceAllocation) {
@@ -857,7 +854,7 @@ export class ValidationService {
 
     // Check transfer channels
     if (transaction.type === "transfer") {
-      const transfer = transaction as TransferTransaction;
+      const transfer = transaction;
       if (!existingChannelIds.has(transfer.sourceChannelId)) {
         errors.push({
           code: ValidationErrorCodes.TRANSACTION_CHANNEL_NOT_FOUND,
@@ -876,9 +873,7 @@ export class ValidationService {
 
     // Check pool references
     if (transaction.type === "income" || transaction.type === "expense") {
-      const transactionWithAllocation = transaction as
-        | IncomeTransaction
-        | ExpenseTransaction;
+      const transactionWithAllocation = transaction;
       if (transactionWithAllocation.allocationBreakdown) {
         for (const item of transactionWithAllocation.allocationBreakdown
           .items) {
@@ -895,7 +890,7 @@ export class ValidationService {
 
     // Check transfer allocations
     if (transaction.type === "transfer") {
-      const transfer = transaction as TransferTransaction;
+      const transfer = transaction;
 
       // Check source allocation
       if (transfer.sourceAllocation) {

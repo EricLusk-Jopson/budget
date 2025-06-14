@@ -5,7 +5,12 @@ module.exports = {
   setupFilesAfterEnv: [],
   testMatch: ["**/__tests__/**/*.(ts|tsx)", "**/*.(test|spec).(ts|tsx)"],
   transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest",
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.test.json",
+      },
+    ],
   },
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
@@ -13,9 +18,6 @@ module.exports = {
     "!src/**/index.ts",
   ],
   coverageReporters: ["text", "lcov", "html"],
-  moduleNameMapping: {
-    "^@/(.*)$": "<rootDir>/src/$1",
-  },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   moduleDirectories: [
     "node_modules",
