@@ -88,7 +88,8 @@ describe("ValidationService", () => {
       expect(result.errors).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
+            code: ValidationErrorCodes.TRANSACTION_ALLOCATION_MISMATCH,
+            field: "items",
           }),
         ])
       );
@@ -110,7 +111,8 @@ describe("ValidationService", () => {
       expect(result.errors).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
+            code: ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL,
+            field: "items",
           }),
         ])
       );
@@ -380,7 +382,8 @@ describe("ValidationService", () => {
       expect(result.errors).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
+            code: ValidationErrorCodes.TRANSACTION_AMOUNT_INVALID,
+            field: "amount",
           }),
         ])
       );
