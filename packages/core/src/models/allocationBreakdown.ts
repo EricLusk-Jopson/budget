@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * Individual pool allocation within any transaction or distribution
@@ -17,7 +18,7 @@ export const AllocationBreakdownSchema = z
   .object({
     items: z
       .array(PoolAllocationItemSchema)
-      .min(1, "At least one allocation item is required"),
+      .min(1, ValidationErrorCodes.ALLOCATION_EMPTY),
     totalAmount: z.number(),
   })
   .refine(
@@ -30,7 +31,7 @@ export const AllocationBreakdownSchema = z
       return Math.abs(calculatedTotal - data.totalAmount) < 0.01;
     },
     {
-      message: "Allocation items must sum to total amount",
+      message: ValidationErrorCodes.TRANSACTION_ALLOCATION_MISMATCH,
       path: ["items"],
     }
   )
@@ -42,7 +43,7 @@ export const AllocationBreakdownSchema = z
       return poolIds.length === uniquePoolIds.size;
     },
     {
-      message: "Each pool can only appear once in an allocation breakdown",
+      message: ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL,
       path: ["items"],
     }
   );
@@ -55,7 +56,7 @@ export type AllocationBreakdown = z.infer<typeof AllocationBreakdownSchema>;
 export const CreateAllocationBreakdownSchema = z.object({
   items: z
     .array(PoolAllocationItemSchema)
-    .min(1, "At least one allocation item is required"),
+    .min(1, ValidationErrorCodes.ALLOCATION_EMPTY),
   totalAmount: z.number(),
 });
 

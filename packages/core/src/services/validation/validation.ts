@@ -20,7 +20,7 @@ import {
   CurrentBalanceSchema,
   BalanceSnapshotSchema,
 } from "../../models";
-import { ValidationErrorCodes } from "../constants/validation-errors";
+import { ValidationErrorCodes } from "../../constants/validation-errors";
 import { ImportTransaction, ValidationError, ValidationResult } from "./types";
 
 export class ValidationService {
