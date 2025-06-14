@@ -10,6 +10,7 @@ import { CategoryReferenceSchema } from "./category";
  */
 export const BaseTransactionSchema = z.object({
   id: z.string().min(1, "Transaction ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   date: z.date(),
   notes: z.string().max(500).optional(),
   createdAt: z.date(),
@@ -76,6 +77,7 @@ export type Transaction = z.infer<typeof TransactionSchema>;
  * Income transaction creation input
  */
 export const CreateIncomeTransactionSchema = z.object({
+  budgetId: z.string().min(1, "Budget ID is required"),
   date: z.date(),
   channelId: z.string().min(1, "Channel ID is required"),
   amount: z.number().positive("Income amount must be positive"),
@@ -92,6 +94,7 @@ export type CreateIncomeTransaction = z.infer<
  * Expense transaction creation input
  */
 export const CreateExpenseTransactionSchema = z.object({
+  budgetId: z.string().min(1, "Budget ID is required"),
   date: z.date(),
   channelId: z.string().min(1, "Channel ID is required"),
   amount: z.number().positive("Expense amount must be positive"),
@@ -109,6 +112,7 @@ export type CreateExpenseTransaction = z.infer<
  */
 export const CreateTransferTransactionSchema = z
   .object({
+    budgetId: z.string().min(1, "Budget ID is required"),
     date: z.date(),
     amount: z.number().positive("Transfer amount must be positive"),
     description: z.string().min(1, "Transfer description is required").max(200),
@@ -327,6 +331,7 @@ export const validateCreditCardPayment = (
  * Helper function to create credit card payment transfer
  */
 export const createCreditCardPaymentTransfer = (
+  budgetId: string, // ADD THIS PARAMETER
   paymentAmount: number,
   sourceChannelId: string,
   destinationChannelId: string,
@@ -362,6 +367,7 @@ export const createCreditCardPaymentTransfer = (
   });
 
   return {
+    budgetId,
     date,
     amount: paymentAmount,
     description: `Credit card payment - $${paymentAmount}`,

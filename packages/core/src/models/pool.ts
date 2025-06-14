@@ -57,6 +57,7 @@ export type PoolIcon = z.infer<typeof PoolIconSchema>;
  */
 export const PoolSchema = z.object({
   id: z.string().min(1, "Pool ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   name: z.string().min(1, "Pool name is required").max(50),
   description: z.string().max(200).optional(),
   icon: PoolIconSchema.default("other"),
@@ -80,6 +81,7 @@ export type Pool = z.infer<typeof PoolSchema>;
  */
 export const CreatePoolSchema = z
   .object({
+    budgetId: z.string().min(1, "Budget ID is required"),
     name: z.string().min(1, "Pool name is required").max(50),
     description: z.string().max(200).optional(),
     icon: PoolIconSchema.default("other"),
@@ -141,6 +143,7 @@ export type UpdatePool = z.infer<typeof UpdatePoolSchema>;
  */
 export const PoolWithBalanceSchema = z.object({
   id: z.string().min(1, "Pool ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   name: z.string().min(1, "Pool name is required").max(50),
   description: z.string().max(200).optional(),
   icon: PoolIconSchema.default("other"),

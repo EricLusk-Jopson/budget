@@ -42,6 +42,7 @@ export type BillTracking = z.infer<typeof BillTrackingSchema>;
  */
 export const ChannelSchema = z.object({
   id: z.string().min(1, "Channel ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   name: z.string().min(1, "Channel name is required").max(50),
   description: z.string().max(200).optional(),
   type: ChannelTypeSchema,
@@ -69,6 +70,7 @@ export type Channel = z.infer<typeof ChannelSchema>;
  */
 export const CreateChannelSchema = z
   .object({
+    budgetId: z.string().min(1, "Budget ID is required"),
     name: z.string().min(1, "Channel name is required").max(50),
     description: z.string().max(200).optional(),
     type: ChannelTypeSchema,
@@ -143,6 +145,7 @@ export type UpdateChannel = z.infer<typeof UpdateChannelSchema>;
  */
 export const ChannelWithBalanceSchema = z.object({
   id: z.string().min(1, "Channel ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   name: z.string().min(1, "Channel name is required").max(50),
   description: z.string().max(200).optional(),
   type: ChannelTypeSchema,

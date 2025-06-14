@@ -19,6 +19,7 @@ export type PoolAllocation = z.infer<typeof PoolAllocationSchema>;
 export const AllocationStrategySchema = z
   .object({
     id: z.string().min(1, "Allocation strategy ID is required"),
+    budgetId: z.string().min(1, "Budget ID is required"),
     name: z.string().min(1, "Strategy name is required").max(100),
     description: z.string().max(500).optional(),
 
@@ -69,6 +70,7 @@ export type AllocationStrategy = z.infer<typeof AllocationStrategySchema>;
  */
 export const CreateAllocationStrategySchema = z
   .object({
+    budgetId: z.string().min(1, "Budget ID is required"),
     name: z.string().min(1, "Strategy name is required").max(100),
     description: z.string().max(500).optional(),
     effectiveFrom: z.date(),
@@ -132,6 +134,7 @@ export type UpdateAllocationStrategy = z.infer<
  */
 export const AllocationDeviationSchema = z.object({
   id: z.string().min(1, "Deviation ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   allocationStrategyId: z.string().min(1, "Strategy ID is required"),
   poolId: z.string().min(1, "Pool ID is required"),
 
