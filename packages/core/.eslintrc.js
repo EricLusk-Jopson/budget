@@ -12,7 +12,13 @@ module.exports = {
     ecmaVersion: 2022,
     sourceType: "module",
   },
-  ignorePatterns: ["dist", "node_modules", "build", "jest.config.js"],
+  ignorePatterns: [
+    "dist",
+    "node_modules",
+    "build",
+    "jest.config.js",
+    ".eslintrc.js",
+  ], // ← ADD .eslintrc.js HERE
   rules: {
     // Basic ESLint rules (replacing eslint:recommended)
     "no-unused-vars": "off",
