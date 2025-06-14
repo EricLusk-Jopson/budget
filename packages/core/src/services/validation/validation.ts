@@ -22,10 +22,123 @@ import {
 } from "../../models";
 import { ValidationErrorCodes } from "../../constants/validation-errors";
 import { ImportTransaction, ValidationError, ValidationResult } from "./types";
+import { ZodError, ZodIssue } from "zod";
+
+// Re-export ValidationErrorCodes so tests can import it
+export { ValidationErrorCodes };
 
 export class ValidationService {
   private readonly ALLOCATION_TOLERANCE = 0.01; // Allow 1 cent tolerance for floating point precision
   private readonly PERCENTAGE_TOLERANCE = 0.0001; // Allow 0.01% tolerance for percentage calculations
+
+  /**
+   * Extracts specific ValidationErrorCodes from Zod validation errors
+   */
+  private extractZodErrors(zodError: ZodError): ValidationError[] {
+    const errors: ValidationError[] = [];
+
+    for (const issue of zodError.issues) {
+      const error = this.mapZodIssueToValidationError(issue);
+      if (error) {
+        errors.push(error);
+      }
+    }
+
+    return errors;
+  }
+
+  /**
+   * Maps a single Zod issue to a ValidationError with proper field context
+   */
+  private mapZodIssueToValidationError(
+    issue: ZodIssue
+  ): ValidationError | null {
+    // Check if the error message is one of our ValidationErrorCodes
+    const isValidationErrorCode = Object.values(ValidationErrorCodes).includes(
+      issue.message as any
+    );
+
+    if (!isValidationErrorCode) {
+      // For non-ValidationErrorCode messages, return a generic schema error
+      return {
+        field: this.formatZodPath(issue.path),
+        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
+        message: issue.message,
+        details: { zodIssue: issue },
+      };
+    }
+
+    // Extract the specific error code and create proper field context
+    const code = issue.message;
+    const field = this.formatZodPath(issue.path);
+
+    return {
+      field,
+      code,
+      message: this.getDetailedMessage(code, issue),
+      details: this.getErrorDetails(code, issue),
+    };
+  }
+
+  /**
+   * Formats Zod path array into a readable field name
+   */
+  private formatZodPath(path: (string | number)[]): string {
+    if (path.length === 0) return "";
+
+    return path
+      .map((segment) => {
+        if (typeof segment === "number") {
+          // For array indices, get the pool ID if available
+          return `[${segment}]`;
+        }
+        return segment;
+      })
+      .join(".");
+  }
+
+  /**
+   * Gets detailed error message based on error code and Zod issue
+   */
+  private getDetailedMessage(code: string, issue: ZodIssue): string {
+    switch (code) {
+      case ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT:
+        return `Allocation amount cannot be negative`;
+      case ValidationErrorCodes.ALLOCATION_SUM_INVALID:
+        return `Allocation proportions must sum to 100% (1.0)`;
+      case ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL:
+        return `Duplicate pool allocations are not allowed`;
+      case ValidationErrorCodes.ALLOCATION_EMPTY:
+        return `At least one allocation is required`;
+      case ValidationErrorCodes.TRANSACTION_ALLOCATION_MISMATCH:
+        return `Allocation items must sum to total amount`;
+      default:
+        return issue.message;
+    }
+  }
+
+  /**
+   * Gets error details based on error code and Zod issue
+   */
+  private getErrorDetails(
+    code: string,
+    issue: ZodIssue
+  ): Record<string, unknown> {
+    const details: Record<string, unknown> = {
+      path: issue.path,
+      zodCode: issue.code,
+    };
+
+    // Add specific details based on error type
+    if (issue.code === "too_small" && "minimum" in issue) {
+      details.minimum = issue.minimum;
+    }
+    if (issue.code === "too_big" && "maximum" in issue) {
+      details.maximum = issue.maximum;
+    }
+
+    return details;
+  }
 
   // ==================== Allocation Validations ====================
 
@@ -37,37 +150,36 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // Schema validation (includes built-in refinements for sum and duplicates)
+    // Schema validation with error extraction
     const schemaResult = AllocationBreakdownSchema.safeParse(breakdown);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Allocation breakdown schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
-      return { isValid: false, errors };
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
     }
 
-    // Additional validation: check for negative amounts in individual items
-    for (const item of breakdown.items) {
-      if (item.amount < 0) {
+    // Additional custom validation (only run if schema passed basic structure)
+    if (schemaResult.success || breakdown.items) {
+      // Additional validation: check for negative amounts in individual items
+      for (const item of breakdown.items || []) {
+        if (item.amount < 0) {
+          errors.push({
+            field: `items.${item.poolId}.amount`,
+            code: ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT,
+            message: `Allocation amount cannot be negative for pool ${item.poolId}`,
+            details: { poolId: item.poolId, amount: item.amount },
+          });
+        }
+      }
+
+      // Validate total amount is positive
+      if (breakdown.totalAmount <= 0) {
         errors.push({
-          field: `items.${item.poolId}.amount`,
+          field: "totalAmount",
           code: ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT,
-          message: `Allocation amount cannot be negative for pool ${item.poolId}`,
-          details: { poolId: item.poolId, amount: item.amount },
+          message: "Total allocation amount must be positive",
+          details: { totalAmount: breakdown.totalAmount },
         });
       }
-    }
-
-    // Validate total amount is positive
-    if (breakdown.totalAmount <= 0) {
-      errors.push({
-        field: "totalAmount",
-        code: ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT,
-        message: "Total allocation amount must be positive",
-        details: { totalAmount: breakdown.totalAmount },
-      });
     }
 
     return { isValid: errors.length === 0, errors };
@@ -81,72 +193,73 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // First validate the schema
+    // Schema validation with error extraction
     const schemaResult = AllocationStrategySchema.safeParse(strategy);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Allocation strategy schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
-      return { isValid: false, errors };
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
     }
 
-    if (!strategy.allocations || strategy.allocations.length === 0) {
-      errors.push({
-        code: ValidationErrorCodes.ALLOCATION_EMPTY,
-        message: "Allocation strategy must have at least one allocation",
-      });
-      return { isValid: false, errors };
-    }
+    // Additional custom validation (only if we have basic structure)
+    if (schemaResult.success || strategy.allocations) {
+      const allocations = strategy.allocations || [];
 
-    // Check for duplicate pools
-    const poolIds = strategy.allocations.map((a) => a.poolId);
-    const uniquePoolIds = new Set(poolIds);
-    if (poolIds.length !== uniquePoolIds.size) {
-      errors.push({
-        code: ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL,
-        message: "Duplicate pool allocations in strategy",
-      });
-    }
-
-    // Check proportions sum to 1.0
-    const totalProportion = strategy.allocations.reduce(
-      (sum, allocation) => sum + allocation.proportion,
-      0
-    );
-    if (Math.abs(totalProportion - 1.0) > this.PERCENTAGE_TOLERANCE) {
-      errors.push({
-        field: "allocations",
-        code: ValidationErrorCodes.ALLOCATION_SUM_INVALID,
-        message: `Allocation proportions must sum to 100% (1.0), got ${(totalProportion * 100).toFixed(2)}%`,
-        details: { totalProportion, expected: 1.0 },
-      });
-    }
-
-    // Check individual proportions
-    for (const allocation of strategy.allocations) {
-      if (allocation.proportion < 0) {
+      if (allocations.length === 0) {
         errors.push({
-          field: `allocations.${allocation.poolId}.proportion`,
-          code: ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT,
-          message: `Allocation proportion cannot be negative for pool ${allocation.poolId}`,
-          details: {
-            poolId: allocation.poolId,
-            proportion: allocation.proportion,
-          },
+          code: ValidationErrorCodes.ALLOCATION_EMPTY,
+          message: "Allocation strategy must have at least one allocation",
         });
-      }
-      if (allocation.proportion > 1.0) {
-        errors.push({
-          field: `allocations.${allocation.poolId}.proportion`,
-          code: ValidationErrorCodes.ALLOCATION_SUM_INVALID,
-          message: `Allocation proportion cannot exceed 100% for pool ${allocation.poolId}`,
-          details: {
-            poolId: allocation.poolId,
-            proportion: allocation.proportion,
-          },
-        });
+      } else {
+        // Check for duplicate pools
+        const poolIds = allocations.map((a) => a.poolId);
+        const uniquePoolIds = new Set(poolIds);
+        if (poolIds.length !== uniquePoolIds.size) {
+          errors.push({
+            code: ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL,
+            message: "Duplicate pool allocations in strategy",
+          });
+        }
+
+        // Check proportions sum to 1.0
+        const totalProportion = allocations.reduce(
+          (sum, allocation) => sum + allocation.proportion,
+          0
+        );
+        if (Math.abs(totalProportion - 1.0) > this.PERCENTAGE_TOLERANCE) {
+          errors.push({
+            field: "allocations",
+            code: ValidationErrorCodes.ALLOCATION_SUM_INVALID,
+            message: `Allocation proportions must sum to 100% (1.0), got ${(totalProportion * 100).toFixed(2)}%`,
+            details: { totalProportion, expected: 1.0 },
+          });
+        }
+
+        // Check individual proportions
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const [_, allocation] of allocations.entries()) {
+          if (allocation.proportion < 0) {
+            errors.push({
+              field: `allocations.${allocation.poolId}.proportion`,
+              code: ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT,
+              message: `Allocation proportion cannot be negative for pool ${allocation.poolId}`,
+              details: {
+                poolId: allocation.poolId,
+                proportion: allocation.proportion,
+              },
+            });
+          }
+          if (allocation.proportion > 1.0) {
+            errors.push({
+              field: `allocations.${allocation.poolId}.proportion`,
+              code: ValidationErrorCodes.ALLOCATION_SUM_INVALID,
+              message: `Allocation proportion cannot exceed 100% for pool ${allocation.poolId}`,
+              details: {
+                poolId: allocation.poolId,
+                proportion: allocation.proportion,
+              },
+            });
+          }
+        }
       }
     }
 
@@ -240,14 +353,11 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // Schema validation
+    // Schema validation with error extraction
     const schemaResult = IncomeTransactionSchema.safeParse(income);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Income transaction schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
     }
 
     // Basic transaction validation
@@ -290,14 +400,11 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // Schema validation
+    // Schema validation with error extraction
     const schemaResult = ExpenseTransactionSchema.safeParse(expense);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Expense transaction schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
     }
 
     // Basic transaction validation
@@ -340,14 +447,11 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // Schema validation
+    // Schema validation with error extraction
     const schemaResult = TransferTransactionSchema.safeParse(transfer);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Transfer transaction schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
     }
 
     // Basic transaction validation
@@ -493,14 +597,11 @@ export class ValidationService {
     const errors: ValidationError[] = [];
 
     for (const balance of balances) {
-      // Schema validation
+      // Schema validation with error extraction
       const schemaResult = PoolBalanceSchema.safeParse(balance);
       if (!schemaResult.success) {
-        errors.push({
-          code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-          message: `Pool balance schema validation failed for pool ${balance.poolId}, channel ${balance.channelId}`,
-          details: { zodErrors: schemaResult.error.errors },
-        });
+        const zodErrors = this.extractZodErrors(schemaResult.error);
+        errors.push(...zodErrors);
         continue;
       }
 
@@ -559,14 +660,11 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // Schema validation
+    // Schema validation with error extraction
     const schemaResult = CurrentBalanceSchema.safeParse(currentBalance);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Current balance schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
       return { isValid: false, errors };
     }
 
@@ -587,14 +685,11 @@ export class ValidationService {
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
 
-    // Schema validation
+    // Schema validation with error extraction
     const schemaResult = BalanceSnapshotSchema.safeParse(snapshot);
     if (!schemaResult.success) {
-      errors.push({
-        code: ValidationErrorCodes.SCHEMA_VALIDATION_FAILED,
-        message: "Balance snapshot schema validation failed",
-        details: { zodErrors: schemaResult.error.errors },
-      });
+      const zodErrors = this.extractZodErrors(schemaResult.error);
+      errors.push(...zodErrors);
       return { isValid: false, errors };
     }
 
