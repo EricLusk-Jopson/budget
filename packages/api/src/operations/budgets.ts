@@ -24,7 +24,13 @@ export const budgetOperations = {
 
       return {
         id: docRef.id,
-        ...budgetData,
+        name: budgetData.name,
+        description: budgetData.description,
+        currency: budgetData.currency,
+        ownerId: budgetData.ownerId,
+        isActive: budgetData.isActive,
+        createdAt: budgetData.createdAt.toDate(),
+        updatedAt: budgetData.updatedAt.toDate(),
       } as Budget;
     } catch (error) {
       console.error("Error creating budget:", error);
@@ -52,7 +58,13 @@ export const budgetOperations = {
 
       return {
         id: doc.id,
-        ...data,
+        name: data.name,
+        description: data.description,
+        currency: data.currency,
+        ownerId: data.ownerId,
+        isActive: data.isActive,
+        createdAt: data.createdAt?.toDate(),
+        updatedAt: data.updatedAt?.toDate(),
       } as Budget;
     } catch (error) {
       console.error("Error getting budget:", error);
@@ -73,10 +85,19 @@ export const budgetOperations = {
         ]
       );
 
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Budget[];
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          description: data.description,
+          currency: data.currency,
+          ownerId: data.ownerId,
+          isActive: data.isActive,
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate(),
+        };
+      }) as Budget[];
     } catch (error) {
       console.error("Error getting user budgets:", error);
       throw new Error("Failed to get user budgets");
@@ -108,8 +129,17 @@ export const budgetOperations = {
       await firestoreHelpers.updateDoc(budgetPath, updateData);
 
       return {
-        ...existingBudget,
-        ...updateData,
+        id: existingBudget.id,
+        name: updateData.name || existingBudget.name,
+        description:
+          updateData.description !== undefined
+            ? updateData.description
+            : existingBudget.description,
+        currency: updateData.currency || existingBudget.currency,
+        ownerId: existingBudget.ownerId,
+        isActive: existingBudget.isActive,
+        createdAt: existingBudget.createdAt,
+        updatedAt: updateData.updatedAt.toDate(),
       } as Budget;
     } catch (error) {
       console.error("Error updating budget:", error);
@@ -158,7 +188,13 @@ export const budgetOperations = {
 
       callback({
         id: doc.id,
-        ...data,
+        name: data.name,
+        description: data.description,
+        currency: data.currency,
+        ownerId: data.ownerId,
+        isActive: data.isActive,
+        createdAt: data.createdAt?.toDate(),
+        updatedAt: data.updatedAt?.toDate(),
       } as Budget);
     });
   },
@@ -176,7 +212,13 @@ export const budgetOperations = {
           .filter((doc) => doc.isActive)
           .map((doc) => ({
             id: doc.id,
-            ...doc,
+            name: doc.name,
+            description: doc.description,
+            currency: doc.currency,
+            ownerId: doc.ownerId,
+            isActive: doc.isActive,
+            createdAt: doc.createdAt?.toDate(),
+            updatedAt: doc.updatedAt?.toDate(),
           })) as Budget[];
 
         callback(budgets);
