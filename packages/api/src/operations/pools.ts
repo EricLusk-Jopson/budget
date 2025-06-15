@@ -1,4 +1,4 @@
-import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase";
+import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase.js";
 import type { Pool, CreatePool, UpdatePool } from "@budget/core";
 
 export const poolOperations = {

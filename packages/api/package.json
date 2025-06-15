@@ -1,5 +1,6 @@
 {
   "name": "@budget/api",
+  "type": "module",
   "version": "0.1.0",
   "description": "Firebase API integration for values-based budget app",
   "main": "dist/index.js",

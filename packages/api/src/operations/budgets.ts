@@ -1,4 +1,4 @@
-import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase";
+import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase.js";
 import type { Budget, CreateBudget, UpdateBudget } from "@budget/core";
 
 export const budgetOperations = {

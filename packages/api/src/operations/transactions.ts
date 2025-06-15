@@ -1,269 +1,455 @@
-import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase";
+import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase.js";
 import type {
-  AllocationStrategy,
-  CreateAllocationStrategy,
-  UpdateAllocationStrategy,
-  PoolAllocation,
-  AllocationDeviation,
+  Transaction,
+  IncomeTransaction,
+  ExpenseTransaction,
+  TransferTransaction,
+  CreateIncomeTransaction,
+  CreateExpenseTransaction,
+  CreateTransferTransaction,
+  UpdateIncomeTransaction,
+  UpdateExpenseTransaction,
+  UpdateTransferTransaction,
 } from "@budget/core";
 
-export const allocationOperations = {
+/**
+ * Helper function to convert transaction data to Firestore format
+ */
+const convertTransactionToFirestore = (transactionData: any) => {
+  return {
+    ...transactionData,
+    date: Timestamp.fromDate(transactionData.date),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+  };
+};
+
+/**
+ * Helper function to convert Firestore data back to transaction format
+ */
+const convertTransactionFromFirestore = (doc: any) => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    date: data.date?.toDate(),
+    createdAt: data.createdAt?.toDate(),
+    updatedAt: data.updatedAt?.toDate(),
+  };
+};
+
+export const transactionOperations = {
   /**
-   * Create a new allocation strategy for a budget
+   * Create a new income transaction
    */
-  async createAllocationStrategy(
+  async createIncomeTransaction(
     userId: string,
     budgetId: string,
-    data: CreateAllocationStrategy
-  ): Promise<AllocationStrategy> {
+    data: CreateIncomeTransaction
+  ): Promise<IncomeTransaction> {
     try {
-      const strategyData = {
+      const transactionData = convertTransactionToFirestore({
+        type: "income",
         budgetId: data.budgetId,
-        name: data.name,
-        description: data.description || "",
-        effectiveFrom: Timestamp.fromDate(data.effectiveFrom),
-        allocations: data.allocations, // Array of {poolId, proportion}
-        isActive: data.isActive !== undefined ? data.isActive : true,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
+        date: data.date,
+        channelId: data.channelId,
+        amount: data.amount,
+        source: data.source,
+        allocationBreakdown: data.allocationBreakdown,
+        notes: data.notes || "",
+      });
 
       const docRef = await firestoreHelpers.addDoc(
         userDataHelpers.getBudgetSubcollectionPath(
           userId,
           budgetId,
-          "allocationStrategies"
+          "transactions"
         ),
-        strategyData
+        transactionData
       );
 
       return {
         id: docRef.id,
-        budgetId: strategyData.budgetId,
-        name: strategyData.name,
-        description: strategyData.description,
-        effectiveFrom: strategyData.effectiveFrom.toDate(),
-        allocations: strategyData.allocations,
-        isActive: strategyData.isActive,
-        createdAt: strategyData.createdAt.toDate(),
-        updatedAt: strategyData.updatedAt.toDate(),
-      } as AllocationStrategy;
+        type: "income",
+        budgetId: transactionData.budgetId,
+        date: transactionData.date.toDate(),
+        channelId: transactionData.channelId,
+        amount: transactionData.amount,
+        source: transactionData.source,
+        allocationBreakdown: transactionData.allocationBreakdown,
+        notes: transactionData.notes,
+        createdAt: transactionData.createdAt.toDate(),
+        updatedAt: transactionData.updatedAt.toDate(),
+      } as IncomeTransaction;
     } catch (error) {
-      console.error("Error creating allocation strategy:", error);
-      throw new Error("Failed to create allocation strategy");
+      console.error("Error creating income transaction:", error);
+      throw new Error("Failed to create income transaction");
     }
   },
 
   /**
-   * Get a specific allocation strategy by ID
+   * Create a new expense transaction
    */
-  async getAllocationStrategy(
+  async createExpenseTransaction(
     userId: string,
     budgetId: string,
-    strategyId: string
-  ): Promise<AllocationStrategy | null> {
+    data: CreateExpenseTransaction
+  ): Promise<ExpenseTransaction> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
-      const doc = await firestoreHelpers.getDoc(strategyPath);
+      const transactionData = convertTransactionToFirestore({
+        type: "expense",
+        budgetId: data.budgetId,
+        date: data.date,
+        channelId: data.channelId,
+        amount: data.amount,
+        category: data.category,
+        allocationBreakdown: data.allocationBreakdown,
+        notes: data.notes || "",
+      });
+
+      const docRef = await firestoreHelpers.addDoc(
+        userDataHelpers.getBudgetSubcollectionPath(
+          userId,
+          budgetId,
+          "transactions"
+        ),
+        transactionData
+      );
+
+      return {
+        id: docRef.id,
+        type: "expense",
+        budgetId: transactionData.budgetId,
+        date: transactionData.date.toDate(),
+        channelId: transactionData.channelId,
+        amount: transactionData.amount,
+        category: transactionData.category,
+        allocationBreakdown: transactionData.allocationBreakdown,
+        notes: transactionData.notes,
+        createdAt: transactionData.createdAt.toDate(),
+        updatedAt: transactionData.updatedAt.toDate(),
+      } as ExpenseTransaction;
+    } catch (error) {
+      console.error("Error creating expense transaction:", error);
+      throw new Error("Failed to create expense transaction");
+    }
+  },
+
+  /**
+   * Create a new transfer transaction
+   */
+  async createTransferTransaction(
+    userId: string,
+    budgetId: string,
+    data: CreateTransferTransaction
+  ): Promise<TransferTransaction> {
+    try {
+      const transactionData = convertTransactionToFirestore({
+        type: "transfer",
+        budgetId: data.budgetId,
+        date: data.date,
+        amount: data.amount,
+        description: data.description,
+        sourceChannelId: data.sourceChannelId,
+        sourceAllocation: data.sourceAllocation,
+        destinationChannelId: data.destinationChannelId,
+        destinationAllocation: data.destinationAllocation,
+        notes: data.notes || "",
+      });
+
+      const docRef = await firestoreHelpers.addDoc(
+        userDataHelpers.getBudgetSubcollectionPath(
+          userId,
+          budgetId,
+          "transactions"
+        ),
+        transactionData
+      );
+
+      return {
+        id: docRef.id,
+        type: "transfer",
+        budgetId: transactionData.budgetId,
+        date: transactionData.date.toDate(),
+        amount: transactionData.amount,
+        description: transactionData.description,
+        sourceChannelId: transactionData.sourceChannelId,
+        sourceAllocation: transactionData.sourceAllocation,
+        destinationChannelId: transactionData.destinationChannelId,
+        destinationAllocation: transactionData.destinationAllocation,
+        notes: transactionData.notes,
+        createdAt: transactionData.createdAt.toDate(),
+        updatedAt: transactionData.updatedAt.toDate(),
+      } as TransferTransaction;
+    } catch (error) {
+      console.error("Error creating transfer transaction:", error);
+      throw new Error("Failed to create transfer transaction");
+    }
+  },
+
+  /**
+   * Get a specific transaction by ID
+   */
+  async getTransaction(
+    userId: string,
+    budgetId: string,
+    transactionId: string
+  ): Promise<Transaction | null> {
+    try {
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      const doc = await firestoreHelpers.getDoc(transactionPath);
 
       if (!doc.exists()) {
         return null;
       }
 
-      const data = doc.data();
-      if (!data?.isActive) {
-        return null; // Treat inactive strategies as not found
-      }
-
-      return {
-        id: doc.id,
-        budgetId: data.budgetId,
-        name: data.name,
-        description: data.description,
-        effectiveFrom: data.effectiveFrom?.toDate(),
-        allocations: data.allocations,
-        isActive: data.isActive,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
-      } as AllocationStrategy;
+      return convertTransactionFromFirestore(doc) as Transaction;
     } catch (error) {
-      console.error("Error getting allocation strategy:", error);
-      throw new Error("Failed to get allocation strategy");
+      console.error("Error getting transaction:", error);
+      throw new Error("Failed to get transaction");
     }
   },
 
   /**
-   * Get the currently active allocation strategy for a budget
+   * Get all transactions for a budget
    */
-  async getCurrentAllocationStrategy(
+  async getAllTransactions(
     userId: string,
     budgetId: string,
-    asOfDate: Date = new Date()
-  ): Promise<AllocationStrategy | null> {
+    limit?: number
+  ): Promise<Transaction[]> {
     try {
-      const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "allocationStrategies"
-        ),
-        [
-          firestoreHelpers.where("isActive", "==", true),
-          firestoreHelpers.where(
-            "effectiveFrom",
-            "<=",
-            Timestamp.fromDate(asOfDate)
-          ),
-          firestoreHelpers.orderBy("effectiveFrom", "desc"),
-          firestoreHelpers.limit(1) as any,
-        ]
-      );
-
-      if (snapshot.empty) {
-        return null;
-      }
-
-      const doc = snapshot.docs[0];
-      const data = doc.data();
-
-      return {
-        id: doc.id,
-        budgetId: data.budgetId,
-        name: data.name,
-        description: data.description,
-        effectiveFrom: data.effectiveFrom?.toDate(),
-        allocations: data.allocations,
-        isActive: data.isActive,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
-      } as AllocationStrategy;
-    } catch (error) {
-      console.error("Error getting current allocation strategy:", error);
-      throw new Error("Failed to get current allocation strategy");
-    }
-  },
-
-  /**
-   * Get all allocation strategies for a budget
-   */
-  async getAllAllocationStrategies(
-    userId: string,
-    budgetId: string,
-    includeInactive: boolean = false
-  ): Promise<AllocationStrategy[]> {
-    try {
-      const constraints = includeInactive
-        ? [firestoreHelpers.orderBy("effectiveFrom", "desc")]
+      const constraints = limit
+        ? [
+            firestoreHelpers.orderBy("date", "desc"),
+            firestoreHelpers.orderBy("createdAt", "desc"),
+            firestoreHelpers.limit(limit),
+          ]
         : [
-            firestoreHelpers.where("isActive", "==", true),
-            firestoreHelpers.orderBy("effectiveFrom", "desc"),
+            firestoreHelpers.orderBy("date", "desc"),
+            firestoreHelpers.orderBy("createdAt", "desc"),
           ];
 
       const snapshot = await firestoreHelpers.getDocs(
         userDataHelpers.getBudgetSubcollectionPath(
           userId,
           budgetId,
-          "allocationStrategies"
+          "transactions"
         ),
         constraints
       );
 
-      return snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          budgetId: data.budgetId,
-          name: data.name,
-          description: data.description,
-          effectiveFrom: data.effectiveFrom?.toDate(),
-          allocations: data.allocations,
-          isActive: data.isActive,
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate(),
-        };
-      }) as AllocationStrategy[];
+      return snapshot.docs.map((doc) =>
+        convertTransactionFromFirestore(doc)
+      ) as Transaction[];
     } catch (error) {
-      console.error("Error getting allocation strategies:", error);
-      throw new Error("Failed to get allocation strategies");
+      console.error("Error getting transactions:", error);
+      throw new Error("Failed to get transactions");
     }
   },
 
   /**
-   * Get allocation strategies that were effective during a date range
+   * Get transactions by type
    */
-  async getAllocationStrategiesInDateRange(
+  async getTransactionsByType(
+    userId: string,
+    budgetId: string,
+    transactionType: "income" | "expense" | "transfer",
+    limit?: number
+  ): Promise<Transaction[]> {
+    try {
+      const constraints = limit
+        ? [
+            firestoreHelpers.where("type", "==", transactionType),
+            firestoreHelpers.orderBy("date", "desc"),
+            firestoreHelpers.orderBy("createdAt", "desc"),
+            firestoreHelpers.limit(limit),
+          ]
+        : [
+            firestoreHelpers.where("type", "==", transactionType),
+            firestoreHelpers.orderBy("date", "desc"),
+            firestoreHelpers.orderBy("createdAt", "desc"),
+          ];
+
+      const snapshot = await firestoreHelpers.getDocs(
+        userDataHelpers.getBudgetSubcollectionPath(
+          userId,
+          budgetId,
+          "transactions"
+        ),
+        constraints
+      );
+
+      return snapshot.docs.map((doc) =>
+        convertTransactionFromFirestore(doc)
+      ) as Transaction[];
+    } catch (error) {
+      console.error("Error getting transactions by type:", error);
+      throw new Error("Failed to get transactions by type");
+    }
+  },
+
+  /**
+   * Get transactions by date range
+   */
+  async getTransactionsByDateRange(
     userId: string,
     budgetId: string,
     startDate: Date,
     endDate: Date
-  ): Promise<AllocationStrategy[]> {
+  ): Promise<Transaction[]> {
     try {
       const snapshot = await firestoreHelpers.getDocs(
         userDataHelpers.getBudgetSubcollectionPath(
           userId,
           budgetId,
-          "allocationStrategies"
+          "transactions"
         ),
         [
-          firestoreHelpers.where("isActive", "==", true),
-          firestoreHelpers.where(
-            "effectiveFrom",
-            "<=",
-            Timestamp.fromDate(endDate)
-          ),
-          firestoreHelpers.orderBy("effectiveFrom", "desc"),
+          firestoreHelpers.where("date", ">=", Timestamp.fromDate(startDate)),
+          firestoreHelpers.where("date", "<=", Timestamp.fromDate(endDate)),
+          firestoreHelpers.orderBy("date", "desc"),
+          firestoreHelpers.orderBy("createdAt", "desc"),
         ]
       );
 
-      // Filter client-side for strategies that were active during the range
-      return snapshot.docs
-        .map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            budgetId: data.budgetId,
-            name: data.name,
-            description: data.description,
-            effectiveFrom: data.effectiveFrom?.toDate(),
-            allocations: data.allocations,
-            isActive: data.isActive,
-            createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate(),
-          } as AllocationStrategy;
-        })
-        .filter((strategy) => {
-          // Strategy was effective if it started before the end of our range
-          return strategy.effectiveFrom <= endDate;
-        });
+      return snapshot.docs.map((doc) =>
+        convertTransactionFromFirestore(doc)
+      ) as Transaction[];
     } catch (error) {
-      console.error(
-        "Error getting allocation strategies in date range:",
-        error
-      );
-      throw new Error("Failed to get allocation strategies in date range");
+      console.error("Error getting transactions by date range:", error);
+      throw new Error("Failed to get transactions by date range");
     }
   },
 
   /**
-   * Update allocation strategy data
+   * Get transactions by channel
    */
-  async updateAllocationStrategy(
+  async getTransactionsByChannel(
     userId: string,
     budgetId: string,
-    strategyId: string,
-    updates: UpdateAllocationStrategy
-  ): Promise<AllocationStrategy> {
+    channelId: string
+  ): Promise<Transaction[]> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      // Query for transactions where channelId matches (income/expense)
+      const directSnapshot = await firestoreHelpers.getDocs(
+        userDataHelpers.getBudgetSubcollectionPath(
+          userId,
+          budgetId,
+          "transactions"
+        ),
+        [
+          firestoreHelpers.where("channelId", "==", channelId),
+          firestoreHelpers.orderBy("date", "desc"),
+        ]
+      );
 
-      // First verify the strategy exists and is active
-      const existingStrategy = await this.getAllocationStrategy(
+      // Query for transfers where source channel matches
+      const sourceSnapshot = await firestoreHelpers.getDocs(
+        userDataHelpers.getBudgetSubcollectionPath(
+          userId,
+          budgetId,
+          "transactions"
+        ),
+        [
+          firestoreHelpers.where("sourceChannelId", "==", channelId),
+          firestoreHelpers.orderBy("date", "desc"),
+        ]
+      );
+
+      // Query for transfers where destination channel matches
+      const destSnapshot = await firestoreHelpers.getDocs(
+        userDataHelpers.getBudgetSubcollectionPath(
+          userId,
+          budgetId,
+          "transactions"
+        ),
+        [
+          firestoreHelpers.where("destinationChannelId", "==", channelId),
+          firestoreHelpers.orderBy("date", "desc"),
+        ]
+      );
+
+      // Combine and deduplicate results
+      const allDocs = [
+        ...directSnapshot.docs,
+        ...sourceSnapshot.docs,
+        ...destSnapshot.docs,
+      ];
+
+      const uniqueDocs = allDocs.filter(
+        (doc, index, arr) => arr.findIndex((d) => d.id === doc.id) === index
+      );
+
+      return uniqueDocs
+        .map((doc) => convertTransactionFromFirestore(doc))
+        .sort((a, b) => b.date.getTime() - a.date.getTime()) as Transaction[];
+    } catch (error) {
+      console.error("Error getting transactions by channel:", error);
+      throw new Error("Failed to get transactions by channel");
+    }
+  },
+
+  /**
+   * Get transactions involving a specific pool (in allocation breakdown)
+   */
+  async getTransactionsByPool(
+    userId: string,
+    budgetId: string,
+    poolId: string
+  ): Promise<Transaction[]> {
+    try {
+      // This requires client-side filtering since Firestore can't query nested arrays efficiently
+      const allTransactions = await this.getAllTransactions(userId, budgetId);
+
+      return allTransactions.filter((transaction) => {
+        // Check allocationBreakdown for income/expense
+        if (transaction.type === "income" || transaction.type === "expense") {
+          return transaction.allocationBreakdown.items.some(
+            (item) => item.poolId === poolId
+          );
+        }
+
+        // Check both source and destination allocations for transfers
+        if (transaction.type === "transfer") {
+          return (
+            transaction.sourceAllocation.items.some(
+              (item) => item.poolId === poolId
+            ) ||
+            transaction.destinationAllocation.items.some(
+              (item) => item.poolId === poolId
+            )
+          );
+        }
+
+        return false;
+      });
+    } catch (error) {
+      console.error("Error getting transactions by pool:", error);
+      throw new Error("Failed to get transactions by pool");
+    }
+  },
+
+  /**
+   * Update an income transaction
+   */
+  async updateIncomeTransaction(
+    userId: string,
+    budgetId: string,
+    transactionId: string,
+    updates: UpdateIncomeTransaction
+  ): Promise<IncomeTransaction> {
+    try {
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+
+      // Verify transaction exists and is income type
+      const existingTransaction = await this.getTransaction(
         userId,
         budgetId,
-        strategyId
+        transactionId
       );
-      if (!existingStrategy) {
-        throw new Error("Allocation strategy not found");
+      if (!existingTransaction || existingTransaction.type !== "income") {
+        throw new Error("Income transaction not found");
       }
 
       const updateData: any = {
@@ -271,313 +457,286 @@ export const allocationOperations = {
         updatedAt: Timestamp.now(),
       };
 
-      // Convert effectiveFrom to Timestamp if provided
-      if (updates.effectiveFrom !== undefined) {
-        updateData.effectiveFrom = Timestamp.fromDate(updates.effectiveFrom);
+      // Convert date to Timestamp if provided
+      if (updates.date) {
+        updateData.date = Timestamp.fromDate(updates.date);
       }
 
-      await firestoreHelpers.updateDoc(strategyPath, updateData);
+      await firestoreHelpers.updateDoc(transactionPath, updateData);
 
-      return {
-        id: existingStrategy.id,
-        budgetId: existingStrategy.budgetId,
-        name: updateData.name || existingStrategy.name,
-        description:
-          updateData.description !== undefined
-            ? updateData.description
-            : existingStrategy.description,
-        effectiveFrom: updateData.effectiveFrom
-          ? updateData.effectiveFrom.toDate()
-          : existingStrategy.effectiveFrom,
-        allocations: updateData.allocations || existingStrategy.allocations,
-        isActive:
-          updateData.isActive !== undefined
-            ? updateData.isActive
-            : existingStrategy.isActive,
-        createdAt: existingStrategy.createdAt,
-        updatedAt: updateData.updatedAt.toDate(),
-      } as AllocationStrategy;
+      // Return updated transaction
+      const updatedTransaction = await this.getTransaction(
+        userId,
+        budgetId,
+        transactionId
+      );
+      return updatedTransaction as IncomeTransaction;
     } catch (error) {
-      console.error("Error updating allocation strategy:", error);
-      throw new Error("Failed to update allocation strategy");
+      console.error("Error updating income transaction:", error);
+      throw new Error("Failed to update income transaction");
     }
   },
 
   /**
-   * Activate an allocation strategy (set as current active strategy)
+   * Update an expense transaction
    */
-  async activateAllocationStrategy(
+  async updateExpenseTransaction(
     userId: string,
     budgetId: string,
-    strategyId: string,
-    effectiveDate: Date = new Date()
-  ): Promise<AllocationStrategy> {
+    transactionId: string,
+    updates: UpdateExpenseTransaction
+  ): Promise<ExpenseTransaction> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
 
-      // Update the strategy to be active with new effective date
-      const updateData = {
-        isActive: true,
-        effectiveFrom: Timestamp.fromDate(effectiveDate),
+      // Verify transaction exists and is expense type
+      const existingTransaction = await this.getTransaction(
+        userId,
+        budgetId,
+        transactionId
+      );
+      if (!existingTransaction || existingTransaction.type !== "expense") {
+        throw new Error("Expense transaction not found");
+      }
+
+      const updateData: any = {
+        ...updates,
         updatedAt: Timestamp.now(),
       };
 
-      await firestoreHelpers.updateDoc(strategyPath, updateData);
-
-      // Return updated strategy
-      const updatedStrategy = await this.getAllocationStrategy(
-        userId,
-        budgetId,
-        strategyId
-      );
-      if (!updatedStrategy) {
-        throw new Error("Strategy not found after activation");
+      // Convert date to Timestamp if provided
+      if (updates.date) {
+        updateData.date = Timestamp.fromDate(updates.date);
       }
 
-      return updatedStrategy;
+      await firestoreHelpers.updateDoc(transactionPath, updateData);
+
+      // Return updated transaction
+      const updatedTransaction = await this.getTransaction(
+        userId,
+        budgetId,
+        transactionId
+      );
+      return updatedTransaction as ExpenseTransaction;
     } catch (error) {
-      console.error("Error activating allocation strategy:", error);
-      throw new Error("Failed to activate allocation strategy");
+      console.error("Error updating expense transaction:", error);
+      throw new Error("Failed to update expense transaction");
     }
   },
 
   /**
-   * Soft delete an allocation strategy (set isActive to false)
+   * Update a transfer transaction
    */
-  async deleteAllocationStrategy(
+  async updateTransferTransaction(
     userId: string,
     budgetId: string,
-    strategyId: string
+    transactionId: string,
+    updates: UpdateTransferTransaction
+  ): Promise<TransferTransaction> {
+    try {
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+
+      // Verify transaction exists and is transfer type
+      const existingTransaction = await this.getTransaction(
+        userId,
+        budgetId,
+        transactionId
+      );
+      if (!existingTransaction || existingTransaction.type !== "transfer") {
+        throw new Error("Transfer transaction not found");
+      }
+
+      const updateData: any = {
+        ...updates,
+        updatedAt: Timestamp.now(),
+      };
+
+      // Convert date to Timestamp if provided
+      if (updates.date) {
+        updateData.date = Timestamp.fromDate(updates.date);
+      }
+
+      await firestoreHelpers.updateDoc(transactionPath, updateData);
+
+      // Return updated transaction
+      const updatedTransaction = await this.getTransaction(
+        userId,
+        budgetId,
+        transactionId
+      );
+      return updatedTransaction as TransferTransaction;
+    } catch (error) {
+      console.error("Error updating transfer transaction:", error);
+      throw new Error("Failed to update transfer transaction");
+    }
+  },
+
+  /**
+   * Delete a transaction
+   */
+  async deleteTransaction(
+    userId: string,
+    budgetId: string,
+    transactionId: string
   ): Promise<void> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
-
-      await firestoreHelpers.updateDoc(strategyPath, {
-        isActive: false,
-        updatedAt: Timestamp.now(),
-      });
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      await firestoreHelpers.deleteDoc(transactionPath);
     } catch (error) {
-      console.error("Error deleting allocation strategy:", error);
-      throw new Error("Failed to delete allocation strategy");
+      console.error("Error deleting transaction:", error);
+      throw new Error("Failed to delete transaction");
     }
   },
 
   /**
-   * Reactivate a soft-deleted allocation strategy
+   * Get transaction summary for a date range
    */
-  async reactivateAllocationStrategy(
+  async getTransactionSummary(
     userId: string,
     budgetId: string,
-    strategyId: string
-  ): Promise<AllocationStrategy> {
-    try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
-
-      // Get the strategy including inactive ones
-      const doc = await firestoreHelpers.getDoc(strategyPath);
-      if (!doc.exists()) {
-        throw new Error("Allocation strategy not found");
-      }
-
-      await firestoreHelpers.updateDoc(strategyPath, {
-        isActive: true,
-        updatedAt: Timestamp.now(),
-      });
-
-      const data = doc.data();
-      return {
-        id: doc.id,
-        budgetId: data.budgetId,
-        name: data.name,
-        description: data.description,
-        effectiveFrom: data.effectiveFrom?.toDate(),
-        allocations: data.allocations,
-        isActive: true,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: Timestamp.now().toDate(),
-      } as AllocationStrategy;
-    } catch (error) {
-      console.error("Error reactivating allocation strategy:", error);
-      throw new Error("Failed to reactivate allocation strategy");
-    }
-  },
-
-  /**
-   * Calculate income distribution based on current strategy
-   */
-  async calculateIncomeDistribution(
-    userId: string,
-    budgetId: string,
-    incomeAmount: number,
-    asOfDate: Date = new Date()
+    startDate: Date,
+    endDate: Date
   ): Promise<{
-    distribution: Record<string, number>;
-    strategy: AllocationStrategy | null;
+    totalIncome: number;
+    totalExpenses: number;
+    totalTransfers: number;
+    netChange: number;
+    transactionCount: number;
   }> {
     try {
-      const strategy = await this.getCurrentAllocationStrategy(
+      const transactions = await this.getTransactionsByDateRange(
         userId,
         budgetId,
-        asOfDate
+        startDate,
+        endDate
       );
 
-      if (!strategy) {
-        return { distribution: {}, strategy: null };
-      }
+      let totalIncome = 0;
+      let totalExpenses = 0;
+      let totalTransfers = 0;
 
-      const distribution: Record<string, number> = {};
-      strategy.allocations.forEach((allocation) => {
-        distribution[allocation.poolId] =
-          Math.round(incomeAmount * allocation.proportion * 100) / 100;
+      transactions.forEach((transaction) => {
+        switch (transaction.type) {
+          case "income":
+            totalIncome += transaction.amount;
+            break;
+          case "expense":
+            totalExpenses += transaction.amount;
+            break;
+          case "transfer":
+            totalTransfers += transaction.amount;
+            break;
+        }
       });
 
-      return { distribution, strategy };
+      return {
+        totalIncome,
+        totalExpenses,
+        totalTransfers,
+        netChange: totalIncome - totalExpenses,
+        transactionCount: transactions.length,
+      };
     } catch (error) {
-      console.error("Error calculating income distribution:", error);
-      throw new Error("Failed to calculate income distribution");
+      console.error("Error getting transaction summary:", error);
+      throw new Error("Failed to get transaction summary");
     }
   },
 
   /**
-   * Validate that allocations sum to 1.0
+   * Subscribe to transaction changes in real-time
    */
-  validateAllocationsSum(allocations: PoolAllocation[]): {
-    isValid: boolean;
-    total: number;
-  } {
-    const total = allocations.reduce(
-      (sum, allocation) => sum + allocation.proportion,
-      0
-    );
-    const isValid = Math.abs(total - 1.0) < 0.001;
-    return { isValid, total };
-  },
-
-  /**
-   * Subscribe to allocation strategy changes in real-time
-   */
-  onAllocationStrategyChange(
+  onTransactionChange(
     userId: string,
     budgetId: string,
-    strategyId: string,
-    callback: (strategy: AllocationStrategy | null) => void
+    transactionId: string,
+    callback: (transaction: Transaction | null) => void
   ) {
-    const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+    const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
 
-    return firestoreHelpers.onDocSnapshot(strategyPath, (doc) => {
+    return firestoreHelpers.onDocSnapshot(transactionPath, (doc) => {
       if (!doc.exists()) {
         callback(null);
         return;
       }
 
-      const data = doc.data();
-      if (!data?.isActive) {
-        callback(null);
-        return;
-      }
-
-      callback({
-        id: doc.id,
-        budgetId: data.budgetId,
-        name: data.name,
-        description: data.description,
-        effectiveFrom: data.effectiveFrom?.toDate(),
-        allocations: data.allocations,
-        isActive: data.isActive,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
-      } as AllocationStrategy);
+      callback(convertTransactionFromFirestore(doc) as Transaction);
     });
   },
 
   /**
-   * Subscribe to current allocation strategy changes in real-time
+   * Subscribe to budget's transactions list in real-time
    */
-  onCurrentAllocationStrategyChange(
+  onTransactionsChange(
     userId: string,
     budgetId: string,
-    callback: (strategy: AllocationStrategy | null) => void
+    callback: (transactions: Transaction[]) => void,
+    limit?: number
   ) {
-    const strategiesPath = userDataHelpers.getBudgetSubcollectionPath(
+    const transactionsPath = userDataHelpers.getBudgetSubcollectionPath(
       userId,
       budgetId,
-      "allocationStrategies"
+      "transactions"
     );
 
+    const constraints = limit
+      ? [
+          firestoreHelpers.orderBy("date", "desc"),
+          firestoreHelpers.orderBy("createdAt", "desc"),
+          firestoreHelpers.limit(limit),
+        ]
+      : [
+          firestoreHelpers.orderBy("date", "desc"),
+          firestoreHelpers.orderBy("createdAt", "desc"),
+        ];
+
     return firestoreHelpers.onCollectionSnapshot(
-      strategiesPath,
+      transactionsPath,
       (docs) => {
-        // Find the current strategy (active and most recent effectiveFrom)
-        const currentDate = new Date();
-
-        const strategies = docs
-          .filter(
-            (doc) => doc.isActive && doc.effectiveFrom?.toDate() <= currentDate
-          )
-          .map((doc) => ({
-            id: doc.id,
-            budgetId: doc.budgetId,
-            name: doc.name,
-            description: doc.description,
-            effectiveFrom: doc.effectiveFrom?.toDate(),
-            allocations: doc.allocations,
-            isActive: doc.isActive,
-            createdAt: doc.createdAt?.toDate(),
-            updatedAt: doc.updatedAt?.toDate(),
-          }))
-          .sort(
-            (a, b) => b.effectiveFrom.getTime() - a.effectiveFrom.getTime()
-          );
-
-        callback(
-          strategies.length > 0 ? (strategies[0] as AllocationStrategy) : null
-        );
+        const transactions = docs.map((doc) =>
+          convertTransactionFromFirestore(doc)
+        ) as Transaction[];
+        callback(transactions);
       },
-      [
-        firestoreHelpers.where("isActive", "==", true),
-        firestoreHelpers.orderBy("effectiveFrom", "desc"),
-      ]
+      constraints
     );
   },
 
   /**
-   * Subscribe to budget's allocation strategies list in real-time
+   * Subscribe to transactions by type in real-time
    */
-  onAllocationStrategiesChange(
+  onTransactionsByTypeChange(
     userId: string,
     budgetId: string,
-    callback: (strategies: AllocationStrategy[]) => void,
-    includeInactive: boolean = false
+    transactionType: "income" | "expense" | "transfer",
+    callback: (transactions: Transaction[]) => void,
+    limit?: number
   ) {
-    const strategiesPath = userDataHelpers.getBudgetSubcollectionPath(
+    const transactionsPath = userDataHelpers.getBudgetSubcollectionPath(
       userId,
       budgetId,
-      "allocationStrategies"
+      "transactions"
     );
 
-    const constraints = includeInactive
-      ? [firestoreHelpers.orderBy("effectiveFrom", "desc")]
+    const constraints = limit
+      ? [
+          firestoreHelpers.where("type", "==", transactionType),
+          firestoreHelpers.orderBy("date", "desc"),
+          firestoreHelpers.orderBy("createdAt", "desc"),
+          firestoreHelpers.limit(limit),
+        ]
       : [
-          firestoreHelpers.where("isActive", "==", true),
-          firestoreHelpers.orderBy("effectiveFrom", "desc"),
+          firestoreHelpers.where("type", "==", transactionType),
+          firestoreHelpers.orderBy("date", "desc"),
+          firestoreHelpers.orderBy("createdAt", "desc"),
         ];
 
     return firestoreHelpers.onCollectionSnapshot(
-      strategiesPath,
+      transactionsPath,
       (docs) => {
-        const strategies = docs.map((doc) => ({
-          id: doc.id,
-          budgetId: doc.budgetId,
-          name: doc.name,
-          description: doc.description,
-          effectiveFrom: doc.effectiveFrom?.toDate(),
-          allocations: doc.allocations,
-          isActive: doc.isActive,
-          createdAt: doc.createdAt?.toDate(),
-          updatedAt: doc.updatedAt?.toDate(),
-        })) as AllocationStrategy[];
-
-        callback(strategies);
+        const transactions = docs.map((doc) =>
+          convertTransactionFromFirestore(doc)
+        ) as Transaction[];
+        callback(transactions);
       },
       constraints
     );
