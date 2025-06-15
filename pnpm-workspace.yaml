@@ -1,9 +1,7 @@
 packages:
   # All packages in the packages directory
-  - 'packages/*'
+  - "packages/*"
   # All apps in the apps directory
-  - 'apps/*'
-  # Firebase functions
-  - 'firebase/functions'
+  - "apps/*"
   # Development tools
-  - 'tools/*'
+  - "tools/*"

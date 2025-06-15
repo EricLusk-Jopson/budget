@@ -24,7 +24,7 @@ importers:
   packages/api:
     dependencies:
       '@budget/core':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../core
       firebase:
         specifier: ^10.7.1

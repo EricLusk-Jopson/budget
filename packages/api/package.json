@@ -13,7 +13,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "firebase": "^10.7.1"
+    "firebase": "^10.7.1",
+    "@budget/core": "workspace:*"
   },
   "devDependencies": {
     "@budget/eslint-config": "*",
