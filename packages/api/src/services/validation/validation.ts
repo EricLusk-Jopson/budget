@@ -19,8 +19,8 @@ import {
   PoolBalanceSchema,
   CurrentBalanceSchema,
   BalanceSnapshotSchema,
-} from "../../models";
-import { ValidationErrorCodes } from "../../constants/validation-errors";
+} from "@budget/core/src/models";
+import { ValidationErrorCodes } from "@budget/core/src/constants/validation-errors";
 import { ImportTransaction, ValidationError, ValidationResult } from "./types";
 import { ZodError, ZodIssue } from "zod";
 

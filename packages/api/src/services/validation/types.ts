@@ -1,4 +1,4 @@
-import { ValidationErrorCodes } from "../../constants/validation-errors";
+import { ValidationErrorCodes } from "@budget/core/src/constants/validation-errors";
 
 // Validation Result Types
 export interface ValidationResult {

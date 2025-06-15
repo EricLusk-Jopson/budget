@@ -11,9 +11,6 @@
 // Export all data models
 export * from "./models";
 
-// Export services (to be implemented)
-export * from "./services";
-
 // Export utilities (to be implemented)
 export * from "./utils";
 
