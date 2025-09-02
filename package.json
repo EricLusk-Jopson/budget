@@ -24,7 +24,9 @@
     "firebase:deploy:rules": "firebase deploy --only firestore:rules,storage",
     "firebase:login": "firebase login",
     "firebase:use:staging": "firebase use staging",
-    "firebase:use:prod": "firebase use prod"
+    "firebase:use:prod": "firebase use prod",
+    "web:dev": "turbo run dev --filter=@budget/web",
+    "web:build": "turbo run build --filter=@budget/web"
   },
   "devDependencies": {
     "@turbo/gen": "^1.12.4",

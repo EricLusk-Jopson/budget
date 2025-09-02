@@ -1,0 +1,19 @@
+{
+  "extends": "@budget/typescript-config/react.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@budget/core": ["../../packages/core/src"],
+      "@budget/api": ["../../packages/api/src"],
+      "@budget/state": ["../../packages/state/src"],
+      "@budget/ui": ["../../packages/ui/src"]
+    }
+  },
+  "include": ["src"],
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
