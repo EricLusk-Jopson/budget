@@ -4,8 +4,17 @@
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noEmit": false, // ← Override the base config
+    "module": "commonjs", // ← Override for Node.js compatibility
+    "moduleResolution": "node" // ← Override for proper resolution
   },
   "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts",
+    "**/test-helpers.ts",
+    "**/*.spec.ts"
+  ]
 }

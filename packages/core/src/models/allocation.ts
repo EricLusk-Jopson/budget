@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * Individual pool allocation within a strategy
@@ -7,8 +8,8 @@ export const PoolAllocationSchema = z.object({
   poolId: z.string().min(1, "Pool ID is required"),
   proportion: z
     .number()
-    .min(0, "Proportion cannot be negative")
-    .max(1, "Proportion cannot exceed 1.0"),
+    .min(0, ValidationErrorCodes.ALLOCATION_NEGATIVE_AMOUNT)
+    .max(1, ValidationErrorCodes.ALLOCATION_SUM_INVALID),
 });
 
 export type PoolAllocation = z.infer<typeof PoolAllocationSchema>;
@@ -19,6 +20,7 @@ export type PoolAllocation = z.infer<typeof PoolAllocationSchema>;
 export const AllocationStrategySchema = z
   .object({
     id: z.string().min(1, "Allocation strategy ID is required"),
+    budgetId: z.string().min(1, "Budget ID is required"),
     name: z.string().min(1, "Strategy name is required").max(100),
     description: z.string().max(500).optional(),
 
@@ -28,7 +30,7 @@ export const AllocationStrategySchema = z
     // Array of pool allocations
     allocations: z
       .array(PoolAllocationSchema)
-      .min(1, "At least one allocation is required"),
+      .min(1, ValidationErrorCodes.ALLOCATION_EMPTY),
 
     // Status and metadata
     isActive: z.boolean().default(true),
@@ -45,7 +47,7 @@ export const AllocationStrategySchema = z
       return Math.abs(total - 1.0) < 0.001;
     },
     {
-      message: "All proportions must sum to 1.0 (100%)",
+      message: ValidationErrorCodes.ALLOCATION_SUM_INVALID,
       path: ["allocations"],
     }
   )
@@ -57,7 +59,7 @@ export const AllocationStrategySchema = z
       return poolIds.length === uniquePoolIds.size;
     },
     {
-      message: "Each pool can only appear once in an allocation strategy",
+      message: ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL,
       path: ["allocations"],
     }
   );
@@ -69,12 +71,13 @@ export type AllocationStrategy = z.infer<typeof AllocationStrategySchema>;
  */
 export const CreateAllocationStrategySchema = z
   .object({
+    budgetId: z.string().min(1, "Budget ID is required"),
     name: z.string().min(1, "Strategy name is required").max(100),
     description: z.string().max(500).optional(),
     effectiveFrom: z.date(),
     allocations: z
       .array(PoolAllocationSchema)
-      .min(1, "At least one allocation is required"),
+      .min(1, ValidationErrorCodes.ALLOCATION_EMPTY),
     isActive: z.boolean().default(true),
   })
   .refine(
@@ -87,7 +90,7 @@ export const CreateAllocationStrategySchema = z
       return Math.abs(total - 1.0) < 0.001;
     },
     {
-      message: "All proportions must sum to 1.0 (100%)",
+      message: ValidationErrorCodes.ALLOCATION_SUM_INVALID,
       path: ["allocations"],
     }
   )
@@ -99,7 +102,7 @@ export const CreateAllocationStrategySchema = z
       return poolIds.length === uniquePoolIds.size;
     },
     {
-      message: "Each pool can only appear once in an allocation strategy",
+      message: ValidationErrorCodes.ALLOCATION_DUPLICATE_POOL,
       path: ["allocations"],
     }
   );
@@ -117,7 +120,7 @@ export const UpdateAllocationStrategySchema = z.object({
   effectiveFrom: z.date().optional(),
   allocations: z
     .array(PoolAllocationSchema)
-    .min(1, "At least one allocation is required")
+    .min(1, ValidationErrorCodes.ALLOCATION_EMPTY)
     .optional(),
   isActive: z.boolean().optional(),
   updatedAt: z.date(),
@@ -132,6 +135,7 @@ export type UpdateAllocationStrategy = z.infer<
  */
 export const AllocationDeviationSchema = z.object({
   id: z.string().min(1, "Deviation ID is required"),
+  budgetId: z.string().min(1, "Budget ID is required"),
   allocationStrategyId: z.string().min(1, "Strategy ID is required"),
   poolId: z.string().min(1, "Pool ID is required"),
 

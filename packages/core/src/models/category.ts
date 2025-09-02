@@ -1,12 +1,19 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * Expense subcategory - nested under a parent category
  */
 export const ExpenseSubcategorySchema = z.object({
-  id: z.string().min(1, "Subcategory ID is required"),
-  name: z.string().min(1, "Subcategory name is required").max(50),
-  description: z.string().max(200).optional(),
+  id: z.string().min(1, ValidationErrorCodes.SUBCATEGORY_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.SUBCATEGORY_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   isActive: z.boolean().default(true),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -18,10 +25,16 @@ export type ExpenseSubcategory = z.infer<typeof ExpenseSubcategorySchema>;
  * Expense category - top-level category that can contain subcategories
  */
 export const ExpenseCategorySchema = z.object({
-  id: z.string().min(1, "Category ID is required"),
-  budgetId: z.string().min(1, "Budget ID is required"),
-  name: z.string().min(1, "Category name is required").max(50),
-  description: z.string().max(200).optional(),
+  id: z.string().min(1, ValidationErrorCodes.CATEGORY_ID_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.CATEGORY_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
 
   // Subcategories nested under this category
   subcategories: z.array(ExpenseSubcategorySchema).default([]),
@@ -29,9 +42,9 @@ export const ExpenseCategorySchema = z.object({
   // Display and organization
   color: z
     .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
+    .regex(/^#[0-9A-F]{6}$/i, ValidationErrorCodes.FIELD_INVALID_COLOR)
     .optional(),
-  icon: z.string().max(50).optional(),
+  icon: z.string().max(50, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   sortOrder: z.number().int().default(0),
 
   // Status and metadata
@@ -46,14 +59,20 @@ export type ExpenseCategory = z.infer<typeof ExpenseCategorySchema>;
  * Category creation input
  */
 export const CreateExpenseCategorySchema = z.object({
-  budgetId: z.string().min(1, "Budget ID is required"),
-  name: z.string().min(1, "Category name is required").max(50),
-  description: z.string().max(200).optional(),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.CATEGORY_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   color: z
     .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
+    .regex(/^#[0-9A-F]{6}$/i, ValidationErrorCodes.FIELD_INVALID_COLOR)
     .optional(),
-  icon: z.string().max(50).optional(),
+  icon: z.string().max(50, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   sortOrder: z.number().int().default(0),
   isActive: z.boolean().default(true),
 });
@@ -64,13 +83,20 @@ export type CreateExpenseCategory = z.infer<typeof CreateExpenseCategorySchema>;
  * Category update input
  */
 export const UpdateExpenseCategorySchema = z.object({
-  name: z.string().min(1, "Category name is required").max(50).optional(),
-  description: z.string().max(200).optional(),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.CATEGORY_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   color: z
     .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
+    .regex(/^#[0-9A-F]{6}$/i, ValidationErrorCodes.FIELD_INVALID_COLOR)
     .optional(),
-  icon: z.string().max(50).optional(),
+  icon: z.string().max(50, ValidationErrorCodes.FIELD_TOO_LONG).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
   updatedAt: z.date(),
@@ -82,8 +108,14 @@ export type UpdateExpenseCategory = z.infer<typeof UpdateExpenseCategorySchema>;
  * Subcategory creation input
  */
 export const CreateExpenseSubcategorySchema = z.object({
-  name: z.string().min(1, "Subcategory name is required").max(50),
-  description: z.string().max(200).optional(),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.SUBCATEGORY_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   isActive: z.boolean().default(true),
 });
 
@@ -95,8 +127,15 @@ export type CreateExpenseSubcategory = z.infer<
  * Subcategory update input
  */
 export const UpdateExpenseSubcategorySchema = z.object({
-  name: z.string().min(1, "Subcategory name is required").max(50).optional(),
-  description: z.string().max(200).optional(),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.SUBCATEGORY_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   isActive: z.boolean().optional(),
   updatedAt: z.date(),
 });
@@ -109,8 +148,8 @@ export type UpdateExpenseSubcategory = z.infer<
  * Category reference for transactions (lightweight reference)
  */
 export const CategoryReferenceSchema = z.object({
-  categoryId: z.string().min(1, "Category ID is required"),
-  categoryName: z.string().min(1, "Category name is required"),
+  categoryId: z.string().min(1, ValidationErrorCodes.CATEGORY_ID_REQUIRED),
+  categoryName: z.string().min(1, ValidationErrorCodes.CATEGORY_NAME_REQUIRED),
   subcategoryId: z.string().optional(),
   subcategoryName: z.string().optional(),
 });

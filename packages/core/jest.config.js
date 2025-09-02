@@ -1,1 +1,14 @@
-module.exports = require("@budget/jest-config");
+const baseConfig = require("@budget/jest-config");
+
+module.exports = {
+  ...baseConfig,
+  displayName: "core",
+  transform: {
+    "^.+\\.(ts|tsx|js|jsx)$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.test.json",
+      },
+    ],
+  },
+};

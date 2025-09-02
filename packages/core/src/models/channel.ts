@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * Channel types representing different account types
@@ -17,8 +18,8 @@ export type ChannelType = z.infer<typeof ChannelTypeSchema>;
  */
 const AccountNumberSchema = z
   .string()
-  .min(4, "Account number must be at least 4 characters")
-  .max(20, "Account number too long")
+  .min(4, ValidationErrorCodes.FIELD_TOO_SHORT)
+  .max(20, ValidationErrorCodes.FIELD_TOO_LONG)
   .optional();
 
 /**
@@ -41,17 +42,30 @@ export type BillTracking = z.infer<typeof BillTrackingSchema>;
  * Core channel definition
  */
 export const ChannelSchema = z.object({
-  id: z.string().min(1, "Channel ID is required"),
-  name: z.string().min(1, "Channel name is required").max(50),
-  description: z.string().max(200).optional(),
+  id: z.string().min(1, ValidationErrorCodes.CHANNEL_ID_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.CHANNEL_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   type: ChannelTypeSchema,
 
   // Financial institution info
-  institution: z.string().max(100).optional(),
+  institution: z
+    .string()
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   accountNumber: AccountNumberSchema,
 
   // For credit cards, track credit limit
-  creditLimit: z.number().positive().optional(),
+  creditLimit: z
+    .number()
+    .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+    .optional(),
 
   // Optional bill tracking (primarily for credit cards)
   billTracking: BillTrackingSchema,
@@ -69,12 +83,25 @@ export type Channel = z.infer<typeof ChannelSchema>;
  */
 export const CreateChannelSchema = z
   .object({
-    name: z.string().min(1, "Channel name is required").max(50),
-    description: z.string().max(200).optional(),
+    budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+    name: z
+      .string()
+      .min(1, ValidationErrorCodes.CHANNEL_NAME_REQUIRED)
+      .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+    description: z
+      .string()
+      .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
     type: ChannelTypeSchema,
-    institution: z.string().max(100).optional(),
+    institution: z
+      .string()
+      .max(100, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
     accountNumber: AccountNumberSchema,
-    creditLimit: z.number().positive().optional(),
+    creditLimit: z
+      .number()
+      .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+      .optional(),
     billTracking: BillTrackingSchema,
     isActive: z.boolean().default(true),
   })
@@ -87,7 +114,7 @@ export const CreateChannelSchema = z
       return true;
     },
     {
-      message: "Credit cards must have a positive credit limit",
+      message: ValidationErrorCodes.CREDIT_REQUIRES_LIMIT,
       path: ["creditLimit"],
     }
   )
@@ -100,7 +127,7 @@ export const CreateChannelSchema = z
       return true;
     },
     {
-      message: "Cash accounts should not have institution or account number",
+      message: ValidationErrorCodes.CASH_NO_INSTITUTION,
       path: ["institution"],
     }
   );
@@ -112,12 +139,25 @@ export type CreateChannel = z.infer<typeof CreateChannelSchema>;
  */
 export const UpdateChannelSchema = z
   .object({
-    name: z.string().min(1, "Channel name is required").max(50).optional(),
-    description: z.string().max(200).optional(),
+    name: z
+      .string()
+      .min(1, ValidationErrorCodes.CHANNEL_NAME_REQUIRED)
+      .max(50, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
+    description: z
+      .string()
+      .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
     type: ChannelTypeSchema.optional(),
-    institution: z.string().max(100).optional(),
+    institution: z
+      .string()
+      .max(100, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
     accountNumber: AccountNumberSchema,
-    creditLimit: z.number().positive().optional(),
+    creditLimit: z
+      .number()
+      .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+      .optional(),
     billTracking: BillTrackingSchema,
     isActive: z.boolean().optional(),
     updatedAt: z.date(),
@@ -131,7 +171,7 @@ export const UpdateChannelSchema = z
       return true;
     },
     {
-      message: "Credit cards must have a positive credit limit",
+      message: ValidationErrorCodes.CREDIT_REQUIRES_LIMIT,
       path: ["creditLimit"],
     }
   );
@@ -142,13 +182,26 @@ export type UpdateChannel = z.infer<typeof UpdateChannelSchema>;
  * Channel with balance information (for display purposes)
  */
 export const ChannelWithBalanceSchema = z.object({
-  id: z.string().min(1, "Channel ID is required"),
-  name: z.string().min(1, "Channel name is required").max(50),
-  description: z.string().max(200).optional(),
+  id: z.string().min(1, ValidationErrorCodes.CHANNEL_ID_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.CHANNEL_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   type: ChannelTypeSchema,
-  institution: z.string().max(100).optional(),
+  institution: z
+    .string()
+    .max(100, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   accountNumber: AccountNumberSchema,
-  creditLimit: z.number().positive().optional(),
+  creditLimit: z
+    .number()
+    .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+    .optional(),
   isActive: z.boolean().default(true),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -257,7 +310,7 @@ export const hasBillTracking = (channel: Channel): boolean => {
  * Helper function to get remaining balance on credit card bill
  */
 export const getRemainingBillBalance = (channel: Channel): number => {
-  if (!channel.billTracking || !channel.billTracking.statementAmount) {
+  if (!channel.billTracking?.statementAmount) {
     return 0;
   }
 
@@ -268,7 +321,7 @@ export const getRemainingBillBalance = (channel: Channel): number => {
  * Helper function to check if bill is overdue
  */
 export const isBillOverdue = (channel: Channel): boolean => {
-  if (!channel.billTracking || !channel.billTracking.dueDate) {
+  if (!channel.billTracking?.dueDate) {
     return false;
   }
 
@@ -282,7 +335,7 @@ export const isBillOverdue = (channel: Channel): boolean => {
  * Helper function to get days until bill is due
  */
 export const getDaysUntilDue = (channel: Channel): number | null => {
-  if (!channel.billTracking || !channel.billTracking.dueDate) {
+  if (!channel.billTracking?.dueDate) {
     return null;
   }
 
@@ -296,7 +349,7 @@ export const getDaysUntilDue = (channel: Channel): number | null => {
  * Helper function to check if minimum payment has been met
  */
 export const isMinimumPaymentMet = (channel: Channel): boolean => {
-  if (!channel.billTracking || !channel.billTracking.minimumPayment) {
+  if (!channel.billTracking?.minimumPayment) {
     return true; // No minimum payment required
   }
 
@@ -325,6 +378,7 @@ export const updateBillTrackingAfterPayment = (
     updatedAt: new Date(),
   };
 };
+
 export const CHANNEL_TEMPLATES: Record<
   string,
   Partial<CreateChannel> & { name: string }

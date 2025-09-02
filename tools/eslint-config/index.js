@@ -6,6 +6,7 @@ module.exports = {
   env: {
     node: true,
     es6: true,
+    jest: true,
   },
   ignorePatterns: ["dist", "node_modules", "build"],
   rules: {
@@ -13,5 +14,10 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": "warn",
     "prefer-const": "error",
     "no-var": "error",
+  },
+  // Added this to help with dependency resolution
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: "module",
   },
 };

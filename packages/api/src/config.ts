@@ -15,12 +15,12 @@ export interface AppConfig {
 
 const config: AppConfig = {
   firebase: {
-    apiKey: "demo-api-key",
-    authDomain: "demo-project.firebaseapp.com",
-    projectId: "demo-project",
-    storageBucket: "demo-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef",
+    apiKey: "AIzaSyA4as7taMc-gModOCwSqgzrHLBacBrn8MM",
+    authDomain: "budget-9d6f7.firebaseapp.com",
+    projectId: "budget-9d6f7",
+    storageBucket: "budget-9d6f7.firebasestorage.app",
+    messagingSenderId: "330754043571",
+    appId: "1:330754043571:web:01a6ac5a7a2be578510ac6",
   },
   useEmulator: true,
   environment: "development",

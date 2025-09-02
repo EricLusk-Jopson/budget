@@ -1,5 +1,6 @@
 // Re-export all model types and schemas
 export * from "./user";
+export * from "./budget";
 export * from "./pool";
 export * from "./channel";
 export * from "./allocation";
@@ -10,6 +11,7 @@ export * from "./category";
 
 // Common type unions for convenience
 export type { UserProfile } from "./user";
+export type { Budget, CreateBudget, UpdateBudget, SharedUser } from "./budget"; // Add budget types
 export type { Pool } from "./pool";
 export type { Channel } from "./channel";
 export type { AllocationStrategy } from "./allocation";
@@ -40,6 +42,13 @@ export {
   validateCreateUserProfile,
   validateUpdateUserProfile,
 } from "./user";
+
+// Add budget validation functions
+export {
+  validateBudget,
+  validateCreateBudget,
+  validateUpdateBudget,
+} from "./budget";
 
 export { validatePool, validateCreatePool, validateUpdatePool } from "./pool";
 
@@ -78,6 +87,9 @@ export {
 
 // Re-export helper functions
 export { createUserProfile, DEFAULT_USER_PREFERENCES } from "./user";
+
+// Add budget helper functions
+export { createBudget } from "./budget";
 
 export {
   createPool,

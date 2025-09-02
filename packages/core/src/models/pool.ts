@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationErrorCodes } from "../constants/validation-errors";
 
 /**
  * Pool purpose types that determine behavior
@@ -56,15 +57,25 @@ export type PoolIcon = z.infer<typeof PoolIconSchema>;
  * Core pool definition
  */
 export const PoolSchema = z.object({
-  id: z.string().min(1, "Pool ID is required"),
-  name: z.string().min(1, "Pool name is required").max(50),
-  description: z.string().max(200).optional(),
+  id: z.string().min(1, ValidationErrorCodes.POOL_ID_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.POOL_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   icon: PoolIconSchema.default("other"),
   color: PoolColorSchema.default("blue"),
   purposeType: PoolPurposeTypeSchema,
 
   // Goal-specific fields (only relevant for 'goal' purpose type)
-  targetAmount: z.number().positive().optional(),
+  targetAmount: z
+    .number()
+    .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+    .optional(),
   targetDate: z.date().optional(),
 
   // Status and metadata
@@ -80,12 +91,22 @@ export type Pool = z.infer<typeof PoolSchema>;
  */
 export const CreatePoolSchema = z
   .object({
-    name: z.string().min(1, "Pool name is required").max(50),
-    description: z.string().max(200).optional(),
+    budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+    name: z
+      .string()
+      .min(1, ValidationErrorCodes.POOL_NAME_REQUIRED)
+      .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+    description: z
+      .string()
+      .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
     icon: PoolIconSchema.default("other"),
     color: PoolColorSchema.default("blue"),
     purposeType: PoolPurposeTypeSchema,
-    targetAmount: z.number().positive().optional(),
+    targetAmount: z
+      .number()
+      .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+      .optional(),
     targetDate: z.date().optional(),
     isActive: z.boolean().default(true),
   })
@@ -98,7 +119,7 @@ export const CreatePoolSchema = z
       return true;
     },
     {
-      message: "Goal pools should have either a target amount or target date",
+      message: ValidationErrorCodes.GOAL_REQUIRES_TARGET,
       path: ["targetAmount"],
     }
   );
@@ -110,12 +131,22 @@ export type CreatePool = z.infer<typeof CreatePoolSchema>;
  */
 export const UpdatePoolSchema = z
   .object({
-    name: z.string().min(1, "Pool name is required").max(50).optional(),
-    description: z.string().max(200).optional(),
+    name: z
+      .string()
+      .min(1, ValidationErrorCodes.POOL_NAME_REQUIRED)
+      .max(50, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
+    description: z
+      .string()
+      .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+      .optional(),
     icon: PoolIconSchema.optional(),
     color: PoolColorSchema.optional(),
     purposeType: PoolPurposeTypeSchema.optional(),
-    targetAmount: z.number().positive().optional(),
+    targetAmount: z
+      .number()
+      .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+      .optional(),
     targetDate: z.date().optional(),
     isActive: z.boolean().optional(),
     updatedAt: z.date(),
@@ -129,7 +160,7 @@ export const UpdatePoolSchema = z
       return true;
     },
     {
-      message: "Goal pools should have either a target amount or target date",
+      message: ValidationErrorCodes.GOAL_REQUIRES_TARGET,
       path: ["targetAmount"],
     }
   );
@@ -140,13 +171,23 @@ export type UpdatePool = z.infer<typeof UpdatePoolSchema>;
  * Pool with balance information (for display purposes)
  */
 export const PoolWithBalanceSchema = z.object({
-  id: z.string().min(1, "Pool ID is required"),
-  name: z.string().min(1, "Pool name is required").max(50),
-  description: z.string().max(200).optional(),
+  id: z.string().min(1, ValidationErrorCodes.POOL_ID_REQUIRED),
+  budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
+  name: z
+    .string()
+    .min(1, ValidationErrorCodes.POOL_NAME_REQUIRED)
+    .max(50, ValidationErrorCodes.FIELD_TOO_LONG),
+  description: z
+    .string()
+    .max(200, ValidationErrorCodes.FIELD_TOO_LONG)
+    .optional(),
   icon: PoolIconSchema.default("other"),
   color: PoolColorSchema.default("blue"),
   purposeType: PoolPurposeTypeSchema,
-  targetAmount: z.number().positive().optional(),
+  targetAmount: z
+    .number()
+    .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
+    .optional(),
   targetDate: z.date().optional(),
   isActive: z.boolean().default(true),
   createdAt: z.date(),

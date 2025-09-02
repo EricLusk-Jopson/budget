@@ -1,0 +1,133 @@
+graph TD
+    A[New User] --> B[Create Account]
+    B --> C[Create First Budget]
+    C --> D[Values Consultation Process]
+    
+    D --> E[Define Necessary Expenses]
+    E --> F[Identify Current Values & Joys]
+    F --> G[Identify Pain Points]
+    G --> H[Define Future Aspirations]
+    H --> I[Create Initial Pools]
+    I --> J[Create Financial Channels]
+    J --> K[Create Allocation Strategy]
+    K --> L[Budget Ready for Use]
+    
+    L --> M{Daily Usage}
+    
+    M --> N[Add Income Transaction]
+    N --> N1[Select Channel]
+    N1 --> N2[Enter Amount & Source]
+    N2 --> N3{Use Auto-Allocation?}
+    N3 -->|Yes| N4[Apply Current Strategy]
+    N3 -->|No| N5[Manual Pool Allocation]
+    N4 --> N6[Save Income Transaction]
+    N5 --> N6
+    N6 --> N7[Update Balances]
+    N7 --> P[View Updated Dashboard]
+    
+    M --> O[Add Expense Transaction]
+    O --> O1[Select Channel]
+    O1 --> O2[Enter Amount & Description]
+    O2 --> O3[Select Category/Subcategory]
+    O3 --> O4{Single Pool?}
+    O4 -->|Yes| O5[Select Pool]
+    O4 -->|No| O6[Split Across Pools]
+    O5 --> O7[Save Expense Transaction]
+    O6 --> O7
+    O7 --> O8{Pool Balance Available?}
+    O8 -->|Yes| O9[Update Balances]
+    O8 -->|No| O10[Record Allocation Deviation]
+    O9 --> P
+    O10 --> O11{User Choice}
+    O11 -->|Accept Debt| O12[Record Formal Debt]
+    O11 -->|Reject| O13[Cancel Transaction]
+    O12 --> P
+    O13 --> O
+    
+    M --> Q[Transfer Between Pools/Channels]
+    Q --> Q1[Select Source Pool/Channel]
+    Q1 --> Q2[Select Destination Pool/Channel]
+    Q2 --> Q3[Enter Amount]
+    Q3 --> Q4{Credit Card Payment?}
+    Q4 -->|Yes| Q5[Validate Pool Debt Limits]
+    Q4 -->|No| Q6[Validate Source Balance]
+    Q5 --> Q7[Process Transfer]
+    Q6 --> Q7
+    Q7 --> Q8[Update Balances]
+    Q8 --> P
+    
+    P --> R{Management Actions}
+    
+    R --> S[View Transaction History]
+    S --> S1{Edit Transaction?}
+    S1 -->|Yes| S2[Edit Transaction Details]
+    S1 -->|No| S3[Continue Browsing]
+    S2 --> S4[Recalculate Historical Balances]
+    S4 --> P
+    S3 --> P
+    
+    R --> T[Manage Pools]
+    T --> T1{Action Type}
+    T1 -->|Add| T2[Create New Pool]
+    T1 -->|Edit| T3[Update Pool Details]
+    T1 -->|Remove| T4[Close Pool]
+    T2 --> T5[Update Current Strategy?]
+    T3 --> P
+    T4 --> T6[Transfer Remaining Balance]
+    T5 -->|Yes| T7[Adjust Allocation Strategy]
+    T5 -->|No| P
+    T6 --> T7
+    T7 --> P
+    
+    R --> U[Manage Channels]
+    U --> U1{Action Type}
+    U1 -->|Add| U2[Create New Channel]
+    U1 -->|Edit| U3[Update Channel Details]
+    U1 -->|Remove| U4[Close Channel]
+    U2 --> P
+    U3 --> P
+    U4 --> U5[Transfer Remaining Balances]
+    U5 --> P
+    
+    R --> V[Update Allocation Strategy]
+    V --> V1[Review Current Allocations]
+    V1 --> V2[Adjust Percentages]
+    V2 --> V3[Validate Sums to 100%]
+    V3 --> V4{Valid?}
+    V4 -->|Yes| V5[Set Effective Date]
+    V4 -->|No| V2
+    V5 --> V6[Save New Strategy]
+    V6 --> V7[Apply to Future Income]
+    V7 --> P
+    
+    R --> W[View Reports & Analytics]
+    W --> W1[Balance History Charts]
+    W --> W2[Spending by Pool Analysis]
+    W --> W3[Allocation Deviation Reports]
+    W --> W4[Goal Progress Tracking]
+    W1 --> P
+    W2 --> P
+    W3 --> P
+    W4 --> P
+    
+    R --> X[Advanced Features]
+    X --> X1[Handle Credit Card Bills]
+    X1 --> X2[View Statement Transactions]
+    X2 --> X3[Match/Reconcile Expenses]
+    X3 --> P
+    
+    X --> X4[Budget Sharing]
+    X4 --> X5[Invite Collaborators]
+    X5 --> X6[Set Permissions]
+    X6 --> P
+    
+    X --> X7[Data Export/Import]
+    X7 --> X8[Export Transaction History]
+    X7 --> X9[Import from External Sources]
+    X8 --> P
+    X9 --> X10[Validate & Process Import]
+    X10 --> P
+    
+    P --> Y{Continue Using?}
+    Y -->|Yes| M
+    Y -->|No| Z[End Session]
