@@ -10,19 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@budget/api": "workspace:*",
+    "@budget/core": "workspace:*",
+    "@tanstack/react-router": "^1.131.35",
+    "@tanstack/react-router-devtools": "^1.131.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "@budget/core": "workspace:*",
-    "@budget/api": "workspace:*"
+    "react-router-dom": "^6.20.1"
   },
   "devDependencies": {
+    "@budget/eslint-config": "workspace:*",
+    "@budget/typescript-config": "workspace:*",
     "@eslint/js": "^9.33.0",
+    "@tanstack/router-plugin": "^1.131.35",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
-    "@budget/eslint-config": "workspace:*",
-    "@budget/typescript-config": "workspace:*",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
