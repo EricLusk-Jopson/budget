@@ -12,11 +12,13 @@
   "dependencies": {
     "@budget/api": "workspace:*",
     "@budget/core": "workspace:*",
+    "@tailwindcss/vite": "^4.1.13",
     "@tanstack/react-router": "^1.131.35",
     "@tanstack/react-router-devtools": "^1.131.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1"
+    "react-router-dom": "^6.20.1",
+    "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
     "@budget/eslint-config": "workspace:*",
