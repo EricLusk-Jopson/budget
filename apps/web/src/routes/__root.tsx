@@ -10,6 +10,9 @@ const RootLayout = () => (
       <Link to="/about" className="[&.active]:font-bold">
         About
       </Link>
+      <Link to="/signIn" className="[&.active]:font-bold">
+        Sign In
+      </Link>
     </div>
     <hr />
     <Outlet />
