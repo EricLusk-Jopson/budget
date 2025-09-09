@@ -51,7 +51,7 @@ export const SignInForm: React.FC = () => {
   };
 
   return (
-    <AuthFormWrapper>
+    <AuthFormWrapper title="Welcome Back">
       <GoogleSignInButton onClick={handleGoogleSignIn} loading={loading} />
       <LabeledSeparator label="Or" />
 

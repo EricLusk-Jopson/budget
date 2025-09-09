@@ -8,6 +8,8 @@ export interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  confirmPasswordReset: (oobCode: string, email: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

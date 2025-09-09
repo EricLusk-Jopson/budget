@@ -10,6 +10,8 @@ import {
   signOut,
   onAuthStateChanged,
   User,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -187,6 +189,22 @@ export const authHelpers = {
   getCurrentUser(): User | null {
     const auth = firebaseService.getAuth();
     return auth.currentUser;
+  },
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(email: string) {
+    const auth = firebaseService.getAuth();
+    return sendPasswordResetEmail(auth, email);
+  },
+
+  /**
+   * Confirm a new password
+   */
+  async confirmPasswordReset(oobCode: string, newPassword: string) {
+    const auth = firebaseService.getAuth();
+    return confirmPasswordReset(auth, oobCode, newPassword);
   },
 };
 

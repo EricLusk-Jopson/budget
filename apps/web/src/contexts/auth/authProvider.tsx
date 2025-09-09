@@ -56,6 +56,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const sendPasswordResetEmail = async (email: string) => {
+    try {
+      await authHelpers.sendPasswordResetEmail(email);
+    } catch (error) {
+      console.error("Password Reset Error:", error);
+      throw error;
+    }
+  };
+
+  const confirmPasswordReset = async (oobCode: string, newPassword: string) => {
+    try {
+      await authHelpers.confirmPasswordReset(oobCode, newPassword);
+    } catch (error) {
+      console.error("New Password Error: ", error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
@@ -63,6 +81,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signInWithGoogle,
     logout,
+    sendPasswordResetEmail,
+    confirmPasswordReset,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

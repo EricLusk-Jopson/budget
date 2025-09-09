@@ -2,7 +2,13 @@ import type { ReactNode } from "react";
 import GoogleLogo from "../../assets/google-logo.svg";
 import { cn } from "@/lib/utils";
 
-export const AuthFormWrapper = ({ children }: { children: ReactNode }) => {
+export const AuthFormWrapper = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) => {
   return (
     <div className="w-full max-w-88">
       <div className="text-center mb-16">
@@ -10,7 +16,7 @@ export const AuthFormWrapper = ({ children }: { children: ReactNode }) => {
         <p className="text-gray-600">Building You</p>
       </div>
 
-      <h2 className="text-center text-xl font-semibold mb-2">Welcome Back</h2>
+      <h2 className="text-center text-xl font-semibold mb-2">{title}</h2>
 
       <div className="bg-none p-2 ">{children}</div>
     </div>

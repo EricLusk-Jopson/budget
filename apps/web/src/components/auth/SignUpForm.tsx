@@ -51,7 +51,7 @@ export const SignUpForm: React.FC = () => {
   };
 
   return (
-    <AuthFormWrapper>
+    <AuthFormWrapper title="Create Your Free Account">
       <GoogleSignInButton onClick={handleGoogleSignIn} loading={loading} />
       <LabeledSeparator label="Or" />
 
