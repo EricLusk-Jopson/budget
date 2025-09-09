@@ -9,7 +9,6 @@ await initializeFirebase();
 
 // Create a new router instance
 import { routeTree } from "./routeTree.gen";
-import { AuthProvider } from "./contexts/auth/authProvider";
 const router = createRouter({ routeTree });
 
 // Register the router instance for type safety
@@ -21,8 +20,6 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <RouterProvider router={router} />
   </StrictMode>
 );

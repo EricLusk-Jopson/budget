@@ -1,5 +1,5 @@
 {
-  "name": "budget",
+  "name": "leine",
   "version": "1.0.0",
   "description": "Values-based budgeting application",
   "private": true,
@@ -41,6 +41,6 @@
     "monorepo",
     "typescript"
   ],
-  "author": "Your Name",
+  "author": "Eric Lusk-Jopson",
   "license": "MIT"
 }

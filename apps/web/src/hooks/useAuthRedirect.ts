@@ -24,7 +24,7 @@ export const useAuthRedirect = ({
       router.navigate({ to: redirectTo });
     } else if (!requireAuth && user) {
       // User is authenticated but still shouldn't be on this page
-      //   router.navigate({ to: redirectAuthenticatedTo });
+      // router.navigate({ to: redirectAuthenticatedTo });
     }
   }, [user, loading, requireAuth, redirectTo, redirectAuthenticatedTo, router]);
 
