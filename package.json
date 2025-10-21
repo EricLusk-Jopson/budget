@@ -1,5 +1,5 @@
 {
-  "name": "budget",
+  "name": "leine",
   "version": "1.0.0",
   "description": "Values-based budgeting application",
   "private": true,
@@ -24,7 +24,9 @@
     "firebase:deploy:rules": "firebase deploy --only firestore:rules,storage",
     "firebase:login": "firebase login",
     "firebase:use:staging": "firebase use staging",
-    "firebase:use:prod": "firebase use prod"
+    "firebase:use:prod": "firebase use prod",
+    "web:dev": "turbo run dev --filter=@budget/web",
+    "web:build": "turbo run build --filter=@budget/web"
   },
   "devDependencies": {
     "@turbo/gen": "^1.12.4",
@@ -39,6 +41,6 @@
     "monorepo",
     "typescript"
   ],
-  "author": "Your Name",
+  "author": "Eric Lusk-Jopson",
   "license": "MIT"
 }
