@@ -57,7 +57,7 @@ const AuthenticatedNav = ({
   return (
     <>
       <Link
-        to="/dashboard"
+        to="/create-budget"
         className="px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
       >
         Create New Budget

@@ -17,6 +17,7 @@ import { Route as AuthSigninRouteImport } from './routes/_auth.signin'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth.reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth.forgot-password'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppCreateBudgetRouteImport } from './routes/_app.create-budget'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
@@ -56,8 +57,14 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCreateBudgetRoute = AppCreateBudgetRouteImport.update({
+  id: '/create-budget',
+  path: '/create-budget',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/create-budget': typeof AppCreateBudgetRoute
   '/dashboard': typeof AppDashboardRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
+  '/create-budget': typeof AppCreateBudgetRoute
   '/dashboard': typeof AppDashboardRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
+  '/_app/create-budget': typeof AppCreateBudgetRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
@@ -87,6 +96,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/create-budget'
     | '/dashboard'
     | '/forgot-password'
     | '/reset-password'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/create-budget'
     | '/dashboard'
     | '/forgot-password'
     | '/reset-password'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/_app/create-budget'
     | '/_app/dashboard'
     | '/_auth/forgot-password'
     | '/_auth/reset-password'
@@ -176,15 +188,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/create-budget': {
+      id: '/_app/create-budget'
+      path: '/create-budget'
+      fullPath: '/create-budget'
+      preLoaderRoute: typeof AppCreateBudgetRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppCreateBudgetRoute: typeof AppCreateBudgetRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppCreateBudgetRoute: AppCreateBudgetRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppIndexRoute: AppIndexRoute,
 }
