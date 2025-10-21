@@ -71,3 +71,4 @@ Java(TM) SE Runtime Environment (build 24.0.2+12-54)
 
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
+[debug] [2025-09-10T15:50:02.216Z] Received signal SIGHUP 1
