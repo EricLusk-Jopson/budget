@@ -83,7 +83,7 @@ export const SignUpForm: React.FC = () => {
 
       <p className="text-center text-gray-600 mt-4">
         Already have an account?{" "}
-        <AuthHelperLink onClick={() => router.navigate({ to: "/signIn" })}>
+        <AuthHelperLink onClick={() => router.navigate({ to: "/signin" })}>
           Sign In
         </AuthHelperLink>
       </p>

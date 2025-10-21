@@ -88,7 +88,7 @@ export const SignInForm: React.FC = () => {
 
       <p className="text-center text-gray-600 mt-4">
         Don't have an account?{" "}
-        <AuthHelperLink onClick={() => router.navigate({ to: "/signUp" })}>
+        <AuthHelperLink onClick={() => router.navigate({ to: "/signup" })}>
           Sign Up
         </AuthHelperLink>
       </p>

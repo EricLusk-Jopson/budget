@@ -1,7 +1,7 @@
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
 });
 
@@ -12,6 +12,7 @@ function Dashboard() {
   return (
     <>
       Welcome {user?.displayName}, {user?.email}
+      {/*TODO: Visualize budgets here as a list in an 'Active Budgets' collapsible */}
     </>
   );
 }

@@ -10,7 +10,7 @@ interface UseAuthRedirectOptions {
 
 export const useAuthRedirect = ({
   requireAuth = true,
-  redirectTo = "/login",
+  redirectTo = "/signin",
   redirectAuthenticatedTo = "/dashboard",
 }: UseAuthRedirectOptions = {}) => {
   const { user, loading } = useAuth();
