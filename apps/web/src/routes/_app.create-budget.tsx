@@ -1,4 +1,4 @@
-import BudgetCreationStepper from "@/features/budget/creation/BudgetCreationStepper";
+import BudgetCreationStepper from "@/features/budget/components/stepper/BudgetCreationStepper";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/create-budget")({

@@ -44,7 +44,7 @@ export const CreateBudgetSchema = z.object({
   currency: z
     .string()
     .length(3, ValidationErrorCodes.FIELD_INVALID_CURRENCY)
-    .default("USD"),
+    .default("CAD"),
   ownerId: z.string().min(1, ValidationErrorCodes.OWNER_ID_REQUIRED),
 });
 
