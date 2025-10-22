@@ -16,14 +16,12 @@ const STEPS = [
   {
     id: 1,
     title: "Budget Basics",
-    description: "Name, description, and currency",
   },
-  { id: 2, title: "Add Channels", description: "Financial accounts" },
-  { id: 3, title: "Add Pools", description: "Spending categories" },
+  { id: 2, title: "Add Channels" },
+  { id: 3, title: "Add Pools" },
   {
     id: 4,
     title: "Add Allocation Strategy",
-    description: "Distribute income across pools",
   },
 ];
 
@@ -137,9 +135,6 @@ function BudgetCreationStepper() {
                     >
                       {step.title}
                     </div>
-                    <div className="text-xs text-slate-500 max-w-[120px]">
-                      {step.description}
-                    </div>
                   </div>
                 </div>
 
@@ -159,13 +154,6 @@ function BudgetCreationStepper() {
 
         {/* Step Content Card */}
         <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>{STEPS[currentStep - 1].title}</CardTitle>
-            <CardDescription>
-              {STEPS[currentStep - 1].description}
-            </CardDescription>
-          </CardHeader>
-
           <CardContent className="min-h-[400px]">
             {/* Success Alert for Created Steps */}
             {stepCreated && (
