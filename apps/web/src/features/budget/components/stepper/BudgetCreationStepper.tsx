@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import BudgetBasicsForm from "./BudgetBasicsForm";
 
 // Step configuration
 const STEPS = [
@@ -179,6 +180,7 @@ function BudgetCreationStepper() {
                 <p className="text-sm mt-2">Form content will be added here</p>
               </div>
             </div>
+            <BudgetBasicsForm />
           </CardContent>
 
           <CardFooter className="flex justify-between border-t pt-6">
