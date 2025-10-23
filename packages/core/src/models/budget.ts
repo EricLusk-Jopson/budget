@@ -41,10 +41,7 @@ export const CreateBudgetSchema = z.object({
     .string()
     .max(500, ValidationErrorCodes.FIELD_TOO_LONG)
     .optional(),
-  currency: z
-    .string()
-    .length(3, ValidationErrorCodes.FIELD_INVALID_CURRENCY)
-    .default("CAD"),
+  currency: z.string().length(3, ValidationErrorCodes.FIELD_INVALID_CURRENCY),
   ownerId: z.string().min(1, ValidationErrorCodes.OWNER_ID_REQUIRED),
 });
 

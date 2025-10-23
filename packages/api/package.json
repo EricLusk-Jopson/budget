@@ -14,9 +14,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "zod": "^3.22.4",
+    "@budget/core": "workspace:*",
     "firebase": "^10.7.1",
-    "@budget/core": "workspace:*"
+    "zod": "^3.25.56"
   },
   "devDependencies": {
     "@budget/eslint-config": "*",

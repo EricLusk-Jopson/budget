@@ -151,7 +151,7 @@ importers:
         specifier: ^10.7.1
         version: 10.14.1
       zod:
-        specifier: ^3.22.4
+        specifier: ^3.25.56
         version: 3.25.56
     devDependencies:
       '@budget/eslint-config':
@@ -182,7 +182,7 @@ importers:
   packages/core:
     dependencies:
       zod:
-        specifier: ^3.22.4
+        specifier: ^3.25.56
         version: 3.25.56
     devDependencies:
       '@budget/eslint-config':

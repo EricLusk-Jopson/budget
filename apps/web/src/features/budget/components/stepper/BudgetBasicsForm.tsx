@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { CreateBudgetSchema } from "@budget/core";
+import { CreateBudgetSchema, type CreateBudget } from "@budget/core";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Field,
@@ -16,29 +16,89 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect } from "react";
 
 const currencies = [
   { name: "Canadian Dollar", code: "CAD", symbol: "$" },
   { name: "US Dollar", code: "USD", symbol: "$" },
 ];
 
-// TODO: In Step 2, this component will accept props for controlled behavior
-// For now, it maintains its own state (Step 1 complete)
-const BudgetBasicsForm = () => {
+interface BudgetBasicsFormProps {
+  values?: CreateBudget;
+  onChange?: (field: keyof CreateBudget, value: string) => void;
+  onValidityChange?: (isValid: boolean) => void;
+}
+
+const BudgetBasicsForm = ({
+  values: externalValues,
+  onChange: externalOnChange,
+  onValidityChange,
+}: BudgetBasicsFormProps = {}) => {
+  console.log(externalValues);
   const form = useForm({
-    defaultValues: {
+    defaultValues: externalValues || {
       name: "",
       description: "",
       currency: "CAD",
       ownerId: "",
     },
     validators: {
-      onSubmit: CreateBudgetSchema,
+      onMount: CreateBudgetSchema,
+      onChange: CreateBudgetSchema,
     },
     onSubmit: async ({ value }) => {
       console.log("success! Form submitted successfully", value);
     },
   });
+
+  useEffect(() => {
+    if (externalValues) {
+      Object.entries(externalValues).forEach(([key, value]) => {
+        const fieldValue = form.getFieldValue(key as keyof CreateBudget);
+        if (fieldValue !== value) {
+          form.setFieldValue(key as keyof CreateBudget, value, {
+            dontUpdateMeta: true,
+          });
+        }
+      });
+    }
+  }, [externalValues, form]);
+
+  useEffect(() => {
+    if (!onValidityChange) return;
+
+    const unsubscribe = form.store.subscribe(() => {
+      const values = form.state.values;
+
+      // Check required fields are filled
+      const isValid =
+        values.name.trim().length > 0 &&
+        values.ownerId.trim().length > 0 &&
+        values.currency.length === 3;
+
+      onValidityChange(isValid);
+    });
+
+    // Run initial validity check
+    const values = form.state.values;
+    const isValid =
+      values.name.trim().length > 0 &&
+      values.ownerId.trim().length > 0 &&
+      values.currency.length === 3;
+    onValidityChange(isValid);
+
+    return () => unsubscribe();
+  }, [form]);
+
+  const handleFieldChange = (field: keyof CreateBudget, value: string) => {
+    // Update TanStack Form's internal state
+    form.setFieldValue(field, value);
+
+    // If controlled, notify parent of change
+    if (externalOnChange) {
+      externalOnChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -64,7 +124,9 @@ const BudgetBasicsForm = () => {
                       name={field.name}
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) =>
+                        handleFieldChange("name", e.target.value)
+                      }
                       aria-invalid={isInvalid}
                       placeholder="Shared Home Expenses"
                       autoComplete="off"
@@ -90,7 +152,9 @@ const BudgetBasicsForm = () => {
                       name={field.name}
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) =>
+                        handleFieldChange("description", e.target.value)
+                      }
                       aria-invalid={isInvalid}
                       placeholder="Keeping track of shared expenses for cleaning supplies, property taxes, management fees, etc."
                       autoComplete="off"
@@ -114,7 +178,9 @@ const BudgetBasicsForm = () => {
                     <FieldLabel htmlFor={field.name}>Currency</FieldLabel>
                     <Select
                       value={field.state.value}
-                      onValueChange={(value) => field.handleChange(value)}
+                      onValueChange={(value) =>
+                        handleFieldChange("currency", value)
+                      }
                     >
                       <SelectTrigger
                         id={field.name}

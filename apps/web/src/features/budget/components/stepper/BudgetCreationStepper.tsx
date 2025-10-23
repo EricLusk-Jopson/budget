@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import BudgetBasicsForm from "./BudgetBasicsForm";
 import type { CreateBudget } from "@budget/core";
+import { useAuth } from "@/contexts/auth/useAuth";
 
 // Step configuration
 const STEPS = [
@@ -52,17 +53,19 @@ interface StepValidity {
   step4: boolean;
 }
 
-function BudgetCreationStepper() {
+const BudgetCreationStepper = () => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
+  const uid = user?.uid;
   // Centralized state for all form data across all steps
   const [stepData, setStepData] = useState<StepData>({
     step1: {
       name: "",
       description: "",
       currency: "CAD",
-      ownerId: "", // TODO: This should come from auth context
+      ownerId: uid ?? "",
     },
     step2: {
       channels: [],
@@ -74,6 +77,15 @@ function BudgetCreationStepper() {
       allocations: [],
     },
   });
+
+  useEffect(() => {
+    if (user?.uid && !stepData.step1.ownerId) {
+      setStepData((prev) => ({
+        ...prev,
+        step1: { ...prev.step1, ownerId: user.uid },
+      }));
+    }
+  }, [user?.uid, stepData.step1.ownerId]);
 
   // Track validity of each step
   const [stepValidity, setStepValidity] = useState<StepValidity>({
@@ -103,13 +115,15 @@ function BudgetCreationStepper() {
   };
 
   // Handler to update step validity
-  const updateStepValidity = (step: number, isValid: boolean) => {
-    const stepKey = `step${step}` as keyof StepValidity;
-    setStepValidity((prev) => ({
-      ...prev,
-      [stepKey]: isValid,
-    }));
-  };
+  const updateStepValidity = useCallback(
+    <K extends keyof StepData>(step: K, isValid: boolean) => {
+      setStepValidity((prev) => ({
+        ...prev,
+        [step]: isValid,
+      }));
+    },
+    []
+  );
 
   const handleNext = () => {
     // Mark current step as completed
@@ -141,7 +155,8 @@ function BudgetCreationStepper() {
     }
   };
 
-  // ✅ NEW: Handle final submission
+  console.log(user?.uid);
+
   const handleFinish = async () => {
     console.log("Final budget data:", stepData);
     // TODO: Implement Firebase save in Step 5
@@ -156,7 +171,6 @@ function BudgetCreationStepper() {
   const canGoNext = currentStep < STEPS.length;
   const canSkip = currentStep > 1 && currentStep < STEPS.length;
 
-  // ✅ NEW: Check if current step is valid before allowing Next
   const isCurrentStepValid =
     stepValidity[`step${currentStep}` as keyof StepValidity];
 
@@ -259,7 +273,17 @@ function BudgetCreationStepper() {
             )}
 
             {/* Render current step form */}
-            {currentStep === 1 && <BudgetBasicsForm />}
+            {currentStep === 1 && (
+              <BudgetBasicsForm
+                values={stepData.step1}
+                onChange={(field, value) =>
+                  updateStepData("step1", { [field]: value })
+                }
+                onValidityChange={(isValid) =>
+                  updateStepValidity("step1", isValid)
+                }
+              />
+            )}
             {currentStep === 2 && (
               <div className="flex items-center justify-center h-[400px] text-slate-500">
                 Channels form (Step 2) - Coming soon
@@ -335,6 +359,6 @@ function BudgetCreationStepper() {
       </div>
     </div>
   );
-}
+};
 
 export default BudgetCreationStepper;
