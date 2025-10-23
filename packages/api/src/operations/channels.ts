@@ -50,11 +50,7 @@ export const channelOperations = {
   /**
    * Create a new channel for a budget
    */
-  async createChannel(
-    userId: string,
-    budgetId: string,
-    data: CreateChannel
-  ): Promise<Channel> {
+  async createChannel(budgetId: string, data: CreateChannel): Promise<Channel> {
     try {
       const channelData = {
         budgetId: data.budgetId,

@@ -30,7 +30,7 @@ export const BillTrackingSchema = z
     statementAmount: z.number().optional(), // Total amount on current statement
     statementDate: z.date().optional(), // Date of current statement
     dueDate: z.date().optional(), // Payment due date
-    amountPaid: z.number().default(0), // Amount paid toward current statement
+    amountPaid: z.number().optional(), // Amount paid toward current statement
     minimumPayment: z.number().optional(), // Minimum payment required
     lastPaymentDate: z.date().optional(), // Date of last payment
   })
@@ -83,6 +83,7 @@ export type Channel = z.infer<typeof ChannelSchema>;
  */
 export const CreateChannelSchema = z
   .object({
+    tempId: z.string(),
     budgetId: z.string().min(1, ValidationErrorCodes.BUDGET_ID_REQUIRED),
     name: z
       .string()
@@ -103,7 +104,7 @@ export const CreateChannelSchema = z
       .positive(ValidationErrorCodes.FIELD_POSITIVE_NUMBER_REQUIRED)
       .optional(),
     billTracking: BillTrackingSchema,
-    isActive: z.boolean().default(true),
+    isActive: z.boolean(),
   })
   .refine(
     (data) => {
@@ -314,7 +315,10 @@ export const getRemainingBillBalance = (channel: Channel): number => {
     return 0;
   }
 
-  return channel.billTracking.statementAmount - channel.billTracking.amountPaid;
+  return (
+    channel.billTracking.statementAmount -
+    (channel.billTracking.amountPaid ?? 0)
+  );
 };
 
 /**
@@ -353,7 +357,10 @@ export const isMinimumPaymentMet = (channel: Channel): boolean => {
     return true; // No minimum payment required
   }
 
-  return channel.billTracking.amountPaid >= channel.billTracking.minimumPayment;
+  return (
+    (channel.billTracking.amountPaid ?? 0) >=
+    channel.billTracking.minimumPayment
+  );
 };
 
 /**
@@ -372,7 +379,7 @@ export const updateBillTrackingAfterPayment = (
     ...channel,
     billTracking: {
       ...channel.billTracking,
-      amountPaid: channel.billTracking.amountPaid + paymentAmount,
+      amountPaid: (channel.billTracking.amountPaid ?? 0) + paymentAmount,
       lastPaymentDate: paymentDate,
     },
     updatedAt: new Date(),

@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import BudgetBasicsForm from "./BudgetBasicsForm";
+import ChannelCreationForm from "./ChannelCreationForm";
 import type { CreateBudget } from "@budget/core";
 import { useAuth } from "@/contexts/auth/useAuth";
-import { budgetOperations } from "@budget/api";
+import { budgetOperations, channelOperations } from "@budget/api";
 
 // Step configuration
 const STEPS = [
@@ -22,10 +23,27 @@ const STEPS = [
   },
 ];
 
+interface ChannelFormData {
+  tempId: string;
+  name: string;
+  description?: string;
+  type: "cash" | "checking" | "savings" | "credit";
+  institution?: string;
+  accountNumber?: string;
+  creditLimit?: number;
+  billTracking?: {
+    statementAmount?: number;
+    statementDate?: Date;
+    dueDate?: Date;
+    amountPaid?: number;
+    minimumPayment?: number;
+    lastPaymentDate?: Date;
+  };
+  isActive: boolean;
+}
+
 interface ChannelsData {
-  // TODO: Define channels structure in future steps
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  channels: any[];
+  channels: ChannelFormData[];
 }
 
 interface PoolsData {
@@ -103,6 +121,7 @@ const BudgetCreationStepper = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [channelsCreated, setChannelsCreated] = useState(false);
+  const [createdChannelIds, setCreatedChannelIds] = useState<string[]>([]);
   const [poolsCreated, setPoolsCreated] = useState(false);
 
   // Handler to update step data
@@ -131,7 +150,6 @@ const BudgetCreationStepper = () => {
   );
 
   const handleNext = async () => {
-    // ✅ Special handling for Step 1 - create the budget
     if (currentStep === 1 && !budgetCreated) {
       if (!user?.uid) {
         setSubmitError("User not authenticated");
@@ -164,6 +182,46 @@ const BudgetCreationStepper = () => {
       return;
     }
 
+    if (currentStep === 2 && !channelsCreated && budgetId) {
+      if (stepData.step2.channels.length === 0) {
+        // Allow skipping if no channels
+        setCurrentStep(3);
+        return;
+      }
+
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      try {
+        const channelIds: string[] = [];
+
+        // Create each channel in Firebase
+        for (const channelData of stepData.step2.channels) {
+          const createdChannel = await channelOperations.createChannel(
+            budgetId,
+            {
+              ...channelData,
+              budgetId,
+            }
+          );
+          channelIds.push(createdChannel.id);
+        }
+
+        setCreatedChannelIds(channelIds);
+        setChannelsCreated(true);
+
+        // Mark step as complete and move to next
+        setCompletedSteps([...completedSteps, 2]);
+        setCurrentStep(3);
+      } catch (error) {
+        console.error("Failed to create channels:", error);
+        setSubmitError("Failed to create channels. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     // ✅ For other steps, just navigate
     if (!completedSteps.includes(currentStep)) {
       setCompletedSteps([...completedSteps, currentStep]);
@@ -176,6 +234,14 @@ const BudgetCreationStepper = () => {
 
   const handleBack = () => {
     if (currentStep > 1) {
+      // Don't allow going back to Step 1 after budget is created
+      if (currentStep === 2 && budgetCreated) {
+        return;
+      }
+      // Don't allow going back to Step 2 after channels are created
+      if (currentStep === 3 && channelsCreated) {
+        return;
+      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -187,8 +253,6 @@ const BudgetCreationStepper = () => {
     }
   };
 
-  console.log(user?.uid);
-
   const handleFinish = async () => {
     console.log("Final budget data:", stepData);
     // TODO: Implement Firebase save in Step 5
@@ -199,9 +263,16 @@ const BudgetCreationStepper = () => {
   const isStepCurrent = (stepId: number) => stepId === currentStep;
   const isStepAccessible = (stepId: number) => stepId <= currentStep;
 
-  const canGoBack = currentStep > 1;
+  const canGoBack =
+    currentStep > 1 &&
+    !(currentStep === 2 && budgetCreated) &&
+    !(currentStep === 3 && channelsCreated);
+
   const canGoNext = currentStep < STEPS.length;
-  const canSkip = currentStep > 1 && currentStep < STEPS.length;
+  const canSkip =
+    currentStep > 1 &&
+    currentStep < STEPS.length &&
+    !isStepCompleted(currentStep);
 
   const isCurrentStepValid =
     stepValidity[`step${currentStep}` as keyof StepValidity];
@@ -288,20 +359,30 @@ const BudgetCreationStepper = () => {
 
         {/* Step Content Card */}
         <Card className="shadow-lg">
-          <CardContent className="min-h-[400px]">
-            {/* ✅ Show error if budget creation failed */}
-            {submitError && currentStep === 1 && (
+          <CardContent className="min-h-[400px] pt-6">
+            {/* ✅ Show error if submission failed */}
+            {submitError && (
               <Alert variant="destructive" className="mb-6">
                 <AlertDescription>{submitError}</AlertDescription>
               </Alert>
             )}
 
-            {/* Success Alert */}
+            {/* Success Alert for Budget Creation */}
             {budgetCreated && currentStep >= 1 && (
               <Alert className="mb-6 border-green-600 bg-green-50">
                 <Check className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
                   Budget created successfully! Budget ID: {budgetId}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Success Alert for Channel Creation */}
+            {channelsCreated && currentStep >= 2 && (
+              <Alert className="mb-6 border-green-600 bg-green-50">
+                <Check className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  {createdChannelIds.length} channel(s) created successfully!
                 </AlertDescription>
               </Alert>
             )}
@@ -316,31 +397,77 @@ const BudgetCreationStepper = () => {
                 onValidityChange={(isValid) =>
                   updateStepValidity("step1", isValid)
                 }
-                disabled={budgetCreated} // ✅ Disable after creation
+                disabled={budgetCreated}
               />
             )}
-            {/* ... other steps ... */}
+
+            {currentStep === 2 && budgetId && (
+              <ChannelCreationForm
+                budgetId={budgetId}
+                values={stepData.step2.channels}
+                onChange={(channels) => updateStepData("step2", { channels })}
+                onValidityChange={(isValid) =>
+                  updateStepValidity("step2", isValid)
+                }
+                disabled={channelsCreated}
+              />
+            )}
+
+            {currentStep === 3 && (
+              <div className="py-8 text-center text-slate-600">
+                Pool creation form coming soon...
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="py-8 text-center text-slate-600">
+                Allocation strategy form coming soon...
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-between border-t pt-6">
-            {/* Back Button - disable going back to Step 1 after budget created */}
+            {/* Back Button */}
             <Button
               variant="outline"
               onClick={handleBack}
-              disabled={!canGoBack || (currentStep === 2 && budgetCreated)}
+              disabled={!canGoBack}
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
 
             <div className="flex gap-2">
+              {/* Skip Button - only show for steps 2-3 and only if not completed */}
+              {canSkip && (
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                  disabled={isSubmitting}
+                >
+                  Skip for now
+                </Button>
+              )}
+
               {/* Next Button */}
               {currentStep < STEPS.length ? (
                 <Button
                   onClick={handleNext}
-                  disabled={!isCurrentStepValid || isSubmitting}
+                  disabled={
+                    (!isCurrentStepValid && currentStep !== 2) || // Allow skipping channels
+                    isSubmitting ||
+                    stepCreated
+                  }
                 >
-                  {isSubmitting ? "Creating..." : "Next"}
+                  {isSubmitting
+                    ? currentStep === 1
+                      ? "Creating Budget..."
+                      : currentStep === 2
+                        ? "Creating Channels..."
+                        : "Processing..."
+                    : stepCreated
+                      ? "Already Created"
+                      : "Next"}
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
@@ -355,17 +482,22 @@ const BudgetCreationStepper = () => {
         {/* Helper Text */}
         <div className="mt-4 text-center text-sm text-slate-500">
           Step {currentStep} of {STEPS.length}
-          {currentStep > 1 &&
-            " • You can go back and edit previous steps anytime"}
+          {currentStep === 2 &&
+            " • You can skip this step and add channels later"}
+          {currentStep > 2 && " • You can skip optional steps"}
         </div>
 
         {/* Debug Info (remove in production) */}
         <div className="mt-4 p-4 bg-slate-100 rounded text-xs">
           <div className="font-semibold mb-2">Debug Info:</div>
           <div>Current Step Valid: {isCurrentStepValid ? "✅" : "❌"}</div>
-          <div>Step 1 Data: {JSON.stringify(stepData.step1, null, 2)}</div>
           <div>Budget ID: {budgetId || "Not created yet"}</div>
           <div>Budget Created: {budgetCreated ? "✅" : "❌"}</div>
+          <div>Channels: {stepData.step2.channels.length}</div>
+          <div>Channels Created: {channelsCreated ? "✅" : "❌"}</div>
+          <div>
+            Created Channel IDs: {createdChannelIds.join(", ") || "None"}
+          </div>
         </div>
       </div>
     </div>
