@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { CreateBudgetSchema } from "@budget/core";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Field,
   FieldError,
@@ -22,7 +22,8 @@ const currencies = [
   { name: "US Dollar", code: "USD", symbol: "$" },
 ];
 
-// TODO: must accept a disabled state
+// TODO: In Step 2, this component will accept props for controlled behavior
+// For now, it maintains its own state (Step 1 complete)
 const BudgetBasicsForm = () => {
   const form = useForm({
     defaultValues: {

@@ -1,16 +1,10 @@
 import React, { useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import BudgetBasicsForm from "./BudgetBasicsForm";
+import type { CreateBudget } from "@budget/core";
 
 // Step configuration
 const STEPS = [
@@ -26,14 +20,96 @@ const STEPS = [
   },
 ];
 
+interface ChannelsData {
+  // TODO: Define channels structure in future steps
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channels: any[];
+}
+
+interface PoolsData {
+  // TODO: Define pools structure in future steps
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pools: any[];
+}
+
+interface AllocationStrategyData {
+  // TODO: Define allocation strategy structure in future steps
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  allocations: any[];
+}
+
+interface StepData {
+  step1: CreateBudget;
+  step2: ChannelsData;
+  step3: PoolsData;
+  step4: AllocationStrategyData;
+}
+
+interface StepValidity {
+  step1: boolean;
+  step2: boolean;
+  step3: boolean;
+  step4: boolean;
+}
+
 function BudgetCreationStepper() {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
-  // State for tracking what's been created
+  // Centralized state for all form data across all steps
+  const [stepData, setStepData] = useState<StepData>({
+    step1: {
+      name: "",
+      description: "",
+      currency: "CAD",
+      ownerId: "", // TODO: This should come from auth context
+    },
+    step2: {
+      channels: [],
+    },
+    step3: {
+      pools: [],
+    },
+    step4: {
+      allocations: [],
+    },
+  });
+
+  // Track validity of each step
+  const [stepValidity, setStepValidity] = useState<StepValidity>({
+    step1: false,
+    step2: false,
+    step3: false,
+    step4: false,
+  });
+
+  // State for tracking what's been created (for success alerts)
   const [budgetCreated, setBudgetCreated] = useState(false);
   const [channelsCreated, setChannelsCreated] = useState(false);
   const [poolsCreated, setPoolsCreated] = useState(false);
+
+  // Handler to update step data
+  const updateStepData = <K extends keyof StepData>(
+    step: K,
+    data: Partial<StepData[K]>
+  ) => {
+    setStepData((prev) => ({
+      ...prev,
+      [step]: {
+        ...prev[step],
+        ...data,
+      },
+    }));
+  };
+
+  // Handler to update step validity
+  const updateStepValidity = (step: number, isValid: boolean) => {
+    const stepKey = `step${step}` as keyof StepValidity;
+    setStepValidity((prev) => ({
+      ...prev,
+      [stepKey]: isValid,
+    }));
+  };
 
   const handleNext = () => {
     // Mark current step as completed
@@ -65,6 +141,13 @@ function BudgetCreationStepper() {
     }
   };
 
+  // ✅ NEW: Handle final submission
+  const handleFinish = async () => {
+    console.log("Final budget data:", stepData);
+    // TODO: Implement Firebase save in Step 5
+    // await BudgetService.createBudget(stepData)
+  };
+
   const isStepCompleted = (stepId: number) => completedSteps.includes(stepId);
   const isStepCurrent = (stepId: number) => stepId === currentStep;
   const isStepAccessible = (stepId: number) => stepId <= currentStep;
@@ -72,6 +155,10 @@ function BudgetCreationStepper() {
   const canGoBack = currentStep > 1;
   const canGoNext = currentStep < STEPS.length;
   const canSkip = currentStep > 1 && currentStep < STEPS.length;
+
+  // ✅ NEW: Check if current step is valid before allowing Next
+  const isCurrentStepValid =
+    stepValidity[`step${currentStep}` as keyof StepValidity];
 
   // Get the creation status for the current step
   const getStepCreationStatus = () => {
@@ -162,18 +249,32 @@ function BudgetCreationStepper() {
                 <Check className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
                   {currentStep === 1 &&
-                    "Budget created successfully! You cannot modify these details once you proceed."}
+                    "Budget created successfully! You can still edit these details by navigating back."}
                   {currentStep === 2 &&
-                    "Channels saved! You cannot modify these once you proceed."}
+                    "Channels saved! You can still edit these by navigating back."}
                   {currentStep === 3 &&
-                    "Pools saved! You cannot modify these once you proceed."}
+                    "Pools saved! You can still edit these by navigating back."}
                 </AlertDescription>
               </Alert>
             )}
 
-            {/* Placeholder for step content */}
-
-            <BudgetBasicsForm />
+            {/* Render current step form */}
+            {currentStep === 1 && <BudgetBasicsForm />}
+            {currentStep === 2 && (
+              <div className="flex items-center justify-center h-[400px] text-slate-500">
+                Channels form (Step 2) - Coming soon
+              </div>
+            )}
+            {currentStep === 3 && (
+              <div className="flex items-center justify-center h-[400px] text-slate-500">
+                Pools form (Step 3) - Coming soon
+              </div>
+            )}
+            {currentStep === 4 && (
+              <div className="flex items-center justify-center h-[400px] text-slate-500">
+                Allocation Strategy form (Step 4) - Coming soon
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-between border-t pt-6">
@@ -197,7 +298,10 @@ function BudgetCreationStepper() {
 
               {/* Next/Finish Button */}
               {currentStep < STEPS.length ? (
-                <Button onClick={handleNext} disabled={!canGoNext}>
+                <Button
+                  onClick={handleNext}
+                  disabled={!canGoNext || !isCurrentStepValid}
+                >
                   Next
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -206,10 +310,7 @@ function BudgetCreationStepper() {
                   <Button variant="ghost" onClick={handleSkip}>
                     Skip & Finish
                   </Button>
-                  <Button
-                    disabled={!channelsCreated || !poolsCreated}
-                    onClick={handleNext}
-                  >
+                  <Button disabled={!isCurrentStepValid} onClick={handleFinish}>
                     Finish Setup
                   </Button>
                 </>
@@ -222,7 +323,14 @@ function BudgetCreationStepper() {
         <div className="mt-4 text-center text-sm text-slate-500">
           Step {currentStep} of {STEPS.length}
           {currentStep > 1 &&
-            " • You can skip optional steps and add details later"}
+            " • You can go back and edit previous steps anytime"}
+        </div>
+
+        {/* Debug Info (remove in production) */}
+        <div className="mt-4 p-4 bg-slate-100 rounded text-xs">
+          <div className="font-semibold mb-2">Debug Info:</div>
+          <div>Current Step Valid: {isCurrentStepValid ? "✅" : "❌"}</div>
+          <div>Step 1 Data: {JSON.stringify(stepData.step1, null, 2)}</div>
         </div>
       </div>
     </div>
