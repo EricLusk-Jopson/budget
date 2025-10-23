@@ -74,9 +74,6 @@ importers:
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.1.9)(@types/react@19.1.12)(react-dom@18.3.1)(react@18.3.1)
-      iso-country-currency:
-        specifier: ^0.7.2
-        version: 0.7.2
       lucide-react:
         specifier: ^0.543.0
         version: 0.543.0(react@18.3.1)
@@ -5358,10 +5355,6 @@ packages:
 
   /isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
-
-  /iso-country-currency@0.7.2:
-    resolution: {integrity: sha512-RcFyqdvt1nbPPrUfAs2cuWnjynZYHU671r9MlcH7zn9Zkyif3tR9LJWVJmpFeSMDECDeycDUNiy9Mur+B21Sqw==}
-    dev: false
 
   /istanbul-lib-coverage@3.2.2:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}

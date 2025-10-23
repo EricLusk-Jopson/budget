@@ -172,14 +172,7 @@ function BudgetCreationStepper() {
             )}
 
             {/* Placeholder for step content */}
-            <div className="flex items-center justify-center h-full text-slate-400">
-              <div className="text-center">
-                <p className="text-lg font-medium">
-                  Step {currentStep} Content
-                </p>
-                <p className="text-sm mt-2">Form content will be added here</p>
-              </div>
-            </div>
+
             <BudgetBasicsForm />
           </CardContent>
 

@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { CreateBudgetSchema } from "@budget/core";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
   FieldError,
@@ -9,7 +9,20 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+const currencies = [
+  { name: "Canadian Dollar", code: "CAD", symbol: "$" },
+  { name: "US Dollar", code: "USD", symbol: "$" },
+];
+
+// TODO: must accept a disabled state
 const BudgetBasicsForm = () => {
   const form = useForm({
     defaultValues: {
@@ -62,6 +75,7 @@ const BudgetBasicsForm = () => {
                 );
               }}
             />
+
             <form.Field
               name="description"
               children={(field) => {
@@ -81,6 +95,41 @@ const BudgetBasicsForm = () => {
                       autoComplete="off"
                       className="resize-none"
                     />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+
+            <form.Field
+              name="currency"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Currency</FieldLabel>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) => field.handleChange(value)}
+                    >
+                      <SelectTrigger
+                        id={field.name}
+                        aria-invalid={isInvalid}
+                        onBlur={field.handleBlur}
+                      >
+                        <SelectValue placeholder="Select a currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.name} ({currency.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
