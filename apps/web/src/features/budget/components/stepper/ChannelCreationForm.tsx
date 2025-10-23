@@ -25,7 +25,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Plus, Trash2, CreditCard, Banknote } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ChannelFormData extends Omit<CreateChannel, "budgetId"> {
   tempId: string; // Temporary ID for UI management
@@ -60,7 +59,7 @@ const ChannelCreationForm = ({
       tempId: crypto.randomUUID(),
       name: "",
       description: "",
-      type: "checking",
+      type: "chequing",
       institution: "",
       accountNumber: "",
       creditLimit: undefined,
@@ -143,33 +142,9 @@ const ChannelCreationForm = ({
         <h2 className="text-2xl font-bold text-slate-900">Add Channels</h2>
         <p className="text-slate-600 mt-1">
           Channels represent your financial accounts where money is physically
-          stored (checking, savings, cash, credit cards).
+          stored (chequing, savings, cash, credit cards).
         </p>
       </div>
-
-      {/* Quick Templates */}
-      {!disabled && channels.length === 1 && !channels[0].name && (
-        <Alert>
-          <AlertDescription>
-            <div className="space-y-2">
-              <p className="font-semibold">Quick Start Templates:</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(CHANNEL_TEMPLATES).map(([key, template]) => (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleApplyTemplate(channels[0].tempId, key)}
-                  >
-                    {template.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Channel Cards */}
       <div className="space-y-4">
@@ -210,7 +185,7 @@ const ChannelCreationForm = ({
       <div className="text-sm text-slate-500">
         <p>
           <strong>Tip:</strong> You can skip this step and add channels later,
-          but we recommend adding at least your primary checking account to get
+          but we recommend adding at least your primary chequing account to get
           started.
         </p>
       </div>
@@ -311,8 +286,8 @@ const ChannelCard = ({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-4">
+    <Card className="gap-0">
+      <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
@@ -349,139 +324,73 @@ const ChannelCard = ({
             e.preventDefault();
           }}
         >
-          <FieldGroup>
-            {/* Channel Type */}
-            <form.Field
-              name="type"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={`${channel.tempId}-type`}>
-                      Account Type
-                    </FieldLabel>
-                    <Select
-                      value={field.state.value}
-                      onValueChange={(value) =>
-                        handleFieldChange("type", value as ChannelType)
-                      }
-                      disabled={disabled}
-                    >
-                      <SelectTrigger
-                        id={`${channel.tempId}-type`}
-                        aria-invalid={isInvalid}
+          <FieldGroup className="mt-5 gap-4">
+            <div className="flex flex-row gap-6">
+              {/* Channel Name */}
+              <form.Field
+                name="name"
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={`${channel.tempId}-name`}>
+                        Account Name
+                      </FieldLabel>
+                      <Input
+                        id={`${channel.tempId}-name`}
+                        value={field.state.value}
                         onBlur={field.handleBlur}
+                        onChange={(e) =>
+                          handleFieldChange("name", e.target.value)
+                        }
+                        aria-invalid={isInvalid}
+                        placeholder="Primary Chequing"
+                        disabled={disabled}
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
+
+              {/* Channel Type */}
+              <form.Field
+                name="type"
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={`${channel.tempId}-type`}>
+                        Account Type
+                      </FieldLabel>
+                      <Select
+                        value={field.state.value}
+                        onValueChange={(value) =>
+                          handleFieldChange("type", value as ChannelType)
+                        }
+                        disabled={disabled}
                       >
-                        <SelectValue placeholder="Select account type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(CHANNEL_TYPE_INFO).map(
-                          ([type, info]) => (
-                            <SelectItem key={type} value={type}>
-                              <div>
-                                <div className="font-medium">{info.label}</div>
-                                <div className="text-xs text-slate-500">
-                                  {info.description}
-                                </div>
-                              </div>
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            />
-
-            {/* Channel Name */}
-            <form.Field
-              name="name"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={`${channel.tempId}-name`}>
-                      Account Name
-                    </FieldLabel>
-                    <Input
-                      id={`${channel.tempId}-name`}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) =>
-                        handleFieldChange("name", e.target.value)
-                      }
-                      aria-invalid={isInvalid}
-                      placeholder="Primary Checking"
-                      disabled={disabled}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            />
-
-            {/* Description */}
-            <form.Field
-              name="description"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={`${channel.tempId}-description`}>
-                      Description (Optional)
-                    </FieldLabel>
-                    <Textarea
-                      id={`${channel.tempId}-description`}
-                      value={field.state.value || ""}
-                      onBlur={field.handleBlur}
-                      onChange={(e) =>
-                        handleFieldChange("description", e.target.value)
-                      }
-                      aria-invalid={isInvalid}
-                      placeholder="Daily spending account"
-                      className="resize-none"
-                      disabled={disabled}
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            />
-
-            {/* Institution (not for cash) */}
-            {channel.type !== "cash" && (
-              <form.Field
-                name="institution"
-                children={(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`${channel.tempId}-institution`}>
-                        Institution (Optional)
-                      </FieldLabel>
-                      <Input
-                        id={`${channel.tempId}-institution`}
-                        value={field.state.value || ""}
-                        onBlur={field.handleBlur}
-                        onChange={(e) =>
-                          handleFieldChange("institution", e.target.value)
-                        }
-                        aria-invalid={isInvalid}
-                        placeholder="Bank of America"
-                        disabled={disabled}
-                      />
+                        <SelectTrigger
+                          id={`${channel.tempId}-type`}
+                          aria-invalid={isInvalid}
+                          onBlur={field.handleBlur}
+                        >
+                          <SelectValue placeholder="Select account type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(CHANNEL_TYPE_INFO).map(
+                            ([type, info]) => (
+                              <SelectItem key={type} value={type}>
+                                <div className="text-left">{info.label}</div>
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
                       )}
@@ -489,40 +398,7 @@ const ChannelCard = ({
                   );
                 }}
               />
-            )}
-
-            {/* Account Number (not for cash) */}
-            {channel.type !== "cash" && (
-              <form.Field
-                name="accountNumber"
-                children={(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`${channel.tempId}-accountNumber`}>
-                        Account Number (Optional - Last 4 digits)
-                      </FieldLabel>
-                      <Input
-                        id={`${channel.tempId}-accountNumber`}
-                        value={field.state.value || ""}
-                        onBlur={field.handleBlur}
-                        onChange={(e) =>
-                          handleFieldChange("accountNumber", e.target.value)
-                        }
-                        aria-invalid={isInvalid}
-                        placeholder="1234"
-                        maxLength={20}
-                        disabled={disabled}
-                      />
-                      {isInvalid && (
-                        <FieldError errors={field.state.meta.errors} />
-                      )}
-                    </Field>
-                  );
-                }}
-              />
-            )}
+            </div>
 
             {/* Credit Limit (for credit cards) */}
             {channel.type === "credit" && (
@@ -563,16 +439,47 @@ const ChannelCard = ({
                 }}
               />
             )}
+
+            {/* Description */}
+            <form.Field
+              name="description"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={`${channel.tempId}-description`}>
+                      Description (Optional)
+                    </FieldLabel>
+                    <Textarea
+                      id={`${channel.tempId}-description`}
+                      value={field.state.value || ""}
+                      onBlur={field.handleBlur}
+                      onChange={(e) =>
+                        handleFieldChange("description", e.target.value)
+                      }
+                      aria-invalid={isInvalid}
+                      placeholder="Daily spending account"
+                      className="resize-none"
+                      disabled={disabled}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
           </FieldGroup>
         </form>
 
         {/* Template Suggestions */}
-        {!disabled && !channel.name && index === 0 && (
+        {!disabled && !channel.name && (
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-slate-600 mb-2">Quick fill:</p>
             <div className="flex flex-wrap gap-2">
               {Object.entries(CHANNEL_TEMPLATES)
-                .slice(0, 3)
+                .slice(0, 5)
                 .map(([key, template]) => (
                   <Button
                     key={key}

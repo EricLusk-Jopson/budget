@@ -62,7 +62,7 @@ service cloud.firestore {
     
     function isValidChannel(data) {
       return data.keys().hasAll(['name', 'type', 'isActive']) &&
-             data.type in ['cash', 'checking', 'savings', 'credit'] &&
+             data.type in ['cash', 'chequing', 'savings', 'credit'] &&
              data.isActive is bool &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 50;
     }

@@ -27,7 +27,7 @@ interface ChannelFormData {
   tempId: string;
   name: string;
   description?: string;
-  type: "cash" | "checking" | "savings" | "credit";
+  type: "cash" | "chequing" | "savings" | "credit";
   institution?: string;
   accountNumber?: string;
   creditLimit?: number;

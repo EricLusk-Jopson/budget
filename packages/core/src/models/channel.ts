@@ -6,7 +6,7 @@ import { ValidationErrorCodes } from "../constants/validation-errors";
  */
 export const ChannelTypeSchema = z.enum([
   "cash", // Physical cash
-  "checking", // Checking account
+  "chequing", // Chequing account
   "savings", // Savings account
   "credit", // Credit card
 ]);
@@ -390,19 +390,14 @@ export const CHANNEL_TEMPLATES: Record<
   string,
   Partial<CreateChannel> & { name: string }
 > = {
-  primaryChecking: {
-    name: "Primary Checking",
-    description: "Primary checking account",
-    type: "checking",
+  primaryChequing: {
+    name: "Primary Chequing",
+    description: "Primary chequing account",
+    type: "chequing",
   },
   primarySavings: {
     name: "Primary Savings",
     description: "Primary savings account",
-    type: "savings",
-  },
-  emergencySavings: {
-    name: "Emergency Savings",
-    description: "Emergency fund savings account",
     type: "savings",
   },
   cash: {
@@ -434,9 +429,9 @@ export const CHANNEL_TYPE_INFO: Record<
     description: "Physical cash on hand",
     icon: "banknotes",
   },
-  checking: {
-    label: "Checking",
-    description: "Checking account for daily transactions",
+  chequing: {
+    label: "Chequing",
+    description: "Chequing account for daily transactions",
     icon: "credit-card",
   },
   savings: {
