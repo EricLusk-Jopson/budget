@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import BudgetBasicsForm from "./BudgetBasicsForm";
 import type { CreateBudget } from "@budget/core";
 import { useAuth } from "@/contexts/auth/useAuth";
+import { budgetOperations } from "@budget/api";
 
 // Step configuration
 const STEPS = [
@@ -97,6 +98,10 @@ const BudgetCreationStepper = () => {
 
   // State for tracking what's been created (for success alerts)
   const [budgetCreated, setBudgetCreated] = useState(false);
+  const [budgetId, setBudgetId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const [channelsCreated, setChannelsCreated] = useState(false);
   const [poolsCreated, setPoolsCreated] = useState(false);
 
@@ -125,18 +130,45 @@ const BudgetCreationStepper = () => {
     []
   );
 
-  const handleNext = () => {
-    // Mark current step as completed
+  const handleNext = async () => {
+    // ✅ Special handling for Step 1 - create the budget
+    if (currentStep === 1 && !budgetCreated) {
+      if (!user?.uid) {
+        setSubmitError("User not authenticated");
+        return;
+      }
+
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      try {
+        // Create budget in Firebase
+        const createdBudget = await budgetOperations.createBudget(
+          user.uid,
+          stepData.step1
+        );
+
+        // Store the budget ID for future steps
+        setBudgetId(createdBudget.id);
+        setBudgetCreated(true);
+
+        // Mark step as complete and move to next
+        setCompletedSteps([...completedSteps, 1]);
+        setCurrentStep(2);
+      } catch (error) {
+        console.error("Failed to create budget:", error);
+        setSubmitError("Failed to create budget. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // ✅ For other steps, just navigate
     if (!completedSteps.includes(currentStep)) {
       setCompletedSteps([...completedSteps, currentStep]);
     }
 
-    // Set creation flags based on step
-    if (currentStep === 1) setBudgetCreated(true);
-    if (currentStep === 2) setChannelsCreated(true);
-    if (currentStep === 3) setPoolsCreated(true);
-
-    // Move to next step
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
     }
@@ -257,17 +289,19 @@ const BudgetCreationStepper = () => {
         {/* Step Content Card */}
         <Card className="shadow-lg">
           <CardContent className="min-h-[400px]">
-            {/* Success Alert for Created Steps */}
-            {stepCreated && (
+            {/* ✅ Show error if budget creation failed */}
+            {submitError && currentStep === 1 && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Success Alert */}
+            {budgetCreated && currentStep >= 1 && (
               <Alert className="mb-6 border-green-600 bg-green-50">
                 <Check className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  {currentStep === 1 &&
-                    "Budget created successfully! You can still edit these details by navigating back."}
-                  {currentStep === 2 &&
-                    "Channels saved! You can still edit these by navigating back."}
-                  {currentStep === 3 &&
-                    "Pools saved! You can still edit these by navigating back."}
+                  Budget created successfully! Budget ID: {budgetId}
                 </AlertDescription>
               </Alert>
             )}
@@ -282,62 +316,37 @@ const BudgetCreationStepper = () => {
                 onValidityChange={(isValid) =>
                   updateStepValidity("step1", isValid)
                 }
+                disabled={budgetCreated} // ✅ Disable after creation
               />
             )}
-            {currentStep === 2 && (
-              <div className="flex items-center justify-center h-[400px] text-slate-500">
-                Channels form (Step 2) - Coming soon
-              </div>
-            )}
-            {currentStep === 3 && (
-              <div className="flex items-center justify-center h-[400px] text-slate-500">
-                Pools form (Step 3) - Coming soon
-              </div>
-            )}
-            {currentStep === 4 && (
-              <div className="flex items-center justify-center h-[400px] text-slate-500">
-                Allocation Strategy form (Step 4) - Coming soon
-              </div>
-            )}
+            {/* ... other steps ... */}
           </CardContent>
 
           <CardFooter className="flex justify-between border-t pt-6">
-            {/* Back Button */}
+            {/* Back Button - disable going back to Step 1 after budget created */}
             <Button
               variant="outline"
               onClick={handleBack}
-              disabled={!canGoBack}
+              disabled={!canGoBack || (currentStep === 2 && budgetCreated)}
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
 
             <div className="flex gap-2">
-              {/* Skip Button (only show for steps 2-3) */}
-              {canSkip && (
-                <Button variant="ghost" onClick={handleSkip}>
-                  Skip for now
-                </Button>
-              )}
-
-              {/* Next/Finish Button */}
+              {/* Next Button */}
               {currentStep < STEPS.length ? (
                 <Button
                   onClick={handleNext}
-                  disabled={!canGoNext || !isCurrentStepValid}
+                  disabled={!isCurrentStepValid || isSubmitting}
                 >
-                  Next
+                  {isSubmitting ? "Creating..." : "Next"}
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <>
-                  <Button variant="ghost" onClick={handleSkip}>
-                    Skip & Finish
-                  </Button>
-                  <Button disabled={!isCurrentStepValid} onClick={handleFinish}>
-                    Finish Setup
-                  </Button>
-                </>
+                <Button disabled={!isCurrentStepValid} onClick={handleFinish}>
+                  Finish Setup
+                </Button>
               )}
             </div>
           </CardFooter>
@@ -355,6 +364,8 @@ const BudgetCreationStepper = () => {
           <div className="font-semibold mb-2">Debug Info:</div>
           <div>Current Step Valid: {isCurrentStepValid ? "✅" : "❌"}</div>
           <div>Step 1 Data: {JSON.stringify(stepData.step1, null, 2)}</div>
+          <div>Budget ID: {budgetId || "Not created yet"}</div>
+          <div>Budget Created: {budgetCreated ? "✅" : "❌"}</div>
         </div>
       </div>
     </div>

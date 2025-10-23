@@ -71,11 +71,7 @@ export const channelOperations = {
       };
 
       const docRef = await firestoreHelpers.addDoc(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "channels"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels"),
         channelData
       );
 
@@ -110,7 +106,7 @@ export const channelOperations = {
     channelId: string
   ): Promise<Channel | null> {
     try {
-      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "channels")}/${channelId}`;
+      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels")}/${channelId}`;
       const doc = await firestoreHelpers.getDoc(channelPath);
 
       if (!doc.exists()) {
@@ -159,11 +155,7 @@ export const channelOperations = {
           ];
 
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "channels"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels"),
         constraints
       );
 
@@ -200,11 +192,7 @@ export const channelOperations = {
   ): Promise<Channel[]> {
     try {
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "channels"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels"),
         [
           firestoreHelpers.where("isActive", "==", true),
           firestoreHelpers.where("type", "==", channelType),
@@ -248,11 +236,7 @@ export const channelOperations = {
       cutoffDate.setDate(cutoffDate.getDate() + dayLimit);
 
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "channels"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels"),
         [
           firestoreHelpers.where("isActive", "==", true),
           firestoreHelpers.where("type", "==", "credit"),
@@ -298,7 +282,7 @@ export const channelOperations = {
     updates: UpdateChannel
   ): Promise<Channel> {
     try {
-      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "channels")}/${channelId}`;
+      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels")}/${channelId}`;
 
       // First verify the channel exists and is active
       const existingChannel = await this.getChannel(
@@ -372,7 +356,7 @@ export const channelOperations = {
     billTracking: BillTracking
   ): Promise<Channel> {
     try {
-      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "channels")}/${channelId}`;
+      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels")}/${channelId}`;
 
       const updateData = {
         billTracking: convertBillTrackingToFirestore(billTracking),
@@ -451,7 +435,7 @@ export const channelOperations = {
     channelId: string
   ): Promise<void> {
     try {
-      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "channels")}/${channelId}`;
+      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels")}/${channelId}`;
 
       await firestoreHelpers.updateDoc(channelPath, {
         isActive: false,
@@ -472,7 +456,7 @@ export const channelOperations = {
     channelId: string
   ): Promise<Channel> {
     try {
-      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "channels")}/${channelId}`;
+      const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels")}/${channelId}`;
 
       // Get the channel including inactive ones
       const doc = await firestoreHelpers.getDoc(channelPath);
@@ -515,7 +499,7 @@ export const channelOperations = {
     channelId: string,
     callback: (channel: Channel | null) => void
   ) {
-    const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "channels")}/${channelId}`;
+    const channelPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "channels")}/${channelId}`;
 
     return firestoreHelpers.onDocSnapshot(channelPath, (doc) => {
       if (!doc.exists()) {
@@ -556,7 +540,6 @@ export const channelOperations = {
     includeInactive: boolean = false
   ) {
     const channelsPath = userDataHelpers.getBudgetSubcollectionPath(
-      userId,
       budgetId,
       "channels"
     );

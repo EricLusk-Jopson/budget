@@ -28,7 +28,7 @@ export const poolOperations = {
       };
 
       const docRef = await firestoreHelpers.addDoc(
-        userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools"),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools"),
         poolData
       );
 
@@ -61,7 +61,7 @@ export const poolOperations = {
     poolId: string
   ): Promise<Pool | null> {
     try {
-      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools")}/${poolId}`;
+      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools")}/${poolId}`;
       const doc = await firestoreHelpers.getDoc(poolPath);
 
       if (!doc.exists()) {
@@ -110,7 +110,7 @@ export const poolOperations = {
           ];
 
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools"),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools"),
         constraints
       );
 
@@ -147,7 +147,7 @@ export const poolOperations = {
   ): Promise<Pool[]> {
     try {
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools"),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools"),
         [
           firestoreHelpers.where("isActive", "==", true),
           firestoreHelpers.where("purposeType", "==", purposeType),
@@ -188,7 +188,7 @@ export const poolOperations = {
     updates: UpdatePool
   ): Promise<Pool> {
     try {
-      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools")}/${poolId}`;
+      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools")}/${poolId}`;
 
       // First verify the pool exists and is active
       const existingPool = await this.getPool(userId, budgetId, poolId);
@@ -251,7 +251,7 @@ export const poolOperations = {
     poolId: string
   ): Promise<void> {
     try {
-      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools")}/${poolId}`;
+      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools")}/${poolId}`;
 
       await firestoreHelpers.updateDoc(poolPath, {
         isActive: false,
@@ -272,7 +272,7 @@ export const poolOperations = {
     poolId: string
   ): Promise<Pool> {
     try {
-      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools")}/${poolId}`;
+      const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools")}/${poolId}`;
 
       // Get the pool including inactive ones
       const doc = await firestoreHelpers.getDoc(poolPath);
@@ -315,7 +315,7 @@ export const poolOperations = {
     poolId: string,
     callback: (pool: Pool | null) => void
   ) {
-    const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "pools")}/${poolId}`;
+    const poolPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "pools")}/${poolId}`;
 
     return firestoreHelpers.onDocSnapshot(poolPath, (doc) => {
       if (!doc.exists()) {
@@ -356,7 +356,6 @@ export const poolOperations = {
     includeInactive: boolean = false
   ) {
     const poolsPath = userDataHelpers.getBudgetSubcollectionPath(
-      userId,
       budgetId,
       "pools"
     );

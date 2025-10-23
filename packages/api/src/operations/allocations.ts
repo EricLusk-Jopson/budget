@@ -30,7 +30,6 @@ export const allocationOperations = {
 
       const docRef = await firestoreHelpers.addDoc(
         userDataHelpers.getBudgetSubcollectionPath(
-          userId,
           budgetId,
           "allocationStrategies"
         ),
@@ -63,7 +62,7 @@ export const allocationOperations = {
     strategyId: string
   ): Promise<AllocationStrategy | null> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "allocationStrategies")}/${strategyId}`;
       const doc = await firestoreHelpers.getDoc(strategyPath);
 
       if (!doc.exists()) {
@@ -103,7 +102,6 @@ export const allocationOperations = {
     try {
       const snapshot = await firestoreHelpers.getDocs(
         userDataHelpers.getBudgetSubcollectionPath(
-          userId,
           budgetId,
           "allocationStrategies"
         ),
@@ -161,7 +159,6 @@ export const allocationOperations = {
 
       const snapshot = await firestoreHelpers.getDocs(
         userDataHelpers.getBudgetSubcollectionPath(
-          userId,
           budgetId,
           "allocationStrategies"
         ),
@@ -200,7 +197,6 @@ export const allocationOperations = {
     try {
       const snapshot = await firestoreHelpers.getDocs(
         userDataHelpers.getBudgetSubcollectionPath(
-          userId,
           budgetId,
           "allocationStrategies"
         ),
@@ -254,7 +250,7 @@ export const allocationOperations = {
     updates: UpdateAllocationStrategy
   ): Promise<AllocationStrategy> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "allocationStrategies")}/${strategyId}`;
 
       // First verify the strategy exists and is active
       const existingStrategy = await this.getAllocationStrategy(
@@ -313,7 +309,7 @@ export const allocationOperations = {
     effectiveDate: Date = new Date()
   ): Promise<AllocationStrategy> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "allocationStrategies")}/${strategyId}`;
 
       // Update the strategy to be active with new effective date
       const updateData = {
@@ -350,7 +346,7 @@ export const allocationOperations = {
     strategyId: string
   ): Promise<void> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "allocationStrategies")}/${strategyId}`;
 
       await firestoreHelpers.updateDoc(strategyPath, {
         isActive: false,
@@ -371,7 +367,7 @@ export const allocationOperations = {
     strategyId: string
   ): Promise<AllocationStrategy> {
     try {
-      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+      const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "allocationStrategies")}/${strategyId}`;
 
       // Get the strategy including inactive ones
       const doc = await firestoreHelpers.getDoc(strategyPath);
@@ -462,7 +458,7 @@ export const allocationOperations = {
     strategyId: string,
     callback: (strategy: AllocationStrategy | null) => void
   ) {
-    const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "allocationStrategies")}/${strategyId}`;
+    const strategyPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "allocationStrategies")}/${strategyId}`;
 
     return firestoreHelpers.onDocSnapshot(strategyPath, (doc) => {
       if (!doc.exists()) {
@@ -499,7 +495,6 @@ export const allocationOperations = {
     callback: (strategy: AllocationStrategy | null) => void
   ) {
     const strategiesPath = userDataHelpers.getBudgetSubcollectionPath(
-      userId,
       budgetId,
       "allocationStrategies"
     );
@@ -550,7 +545,6 @@ export const allocationOperations = {
     includeInactive: boolean = false
   ) {
     const strategiesPath = userDataHelpers.getBudgetSubcollectionPath(
-      userId,
       budgetId,
       "allocationStrategies"
     );

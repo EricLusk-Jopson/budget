@@ -329,28 +329,24 @@ export const firestoreHelpers = {
 // User-specific data access helpers
 export const userDataHelpers = {
   /**
-   * Get user's budget path
+   * Get budget collection path
    */
-  getUserBudgetPath(userId: string, budgetId: string): string {
-    return `users/${userId}/budgets/${budgetId}`;
+  getBudgetsPath(): string {
+    return `budgets`;
   },
 
   /**
-   * Get user's budget collection path
+   * Get budget path
    */
-  getUserBudgetsPath(userId: string): string {
-    return `users/${userId}/budgets`;
+  getBudgetPath(budgetId: string): string {
+    return `budgets/${budgetId}`;
   },
 
   /**
    * Get budget's subcollection path
    */
-  getBudgetSubcollectionPath(
-    userId: string,
-    budgetId: string,
-    subcollection: string
-  ): string {
-    return `users/${userId}/budgets/${budgetId}/${subcollection}`;
+  getBudgetSubcollectionPath(budgetId: string, subcollection: string): string {
+    return `budgets/${budgetId}/${subcollection}`;
   },
 
   /**

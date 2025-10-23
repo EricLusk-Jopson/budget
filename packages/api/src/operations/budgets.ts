@@ -1,6 +1,8 @@
 import { firestoreHelpers, userDataHelpers, Timestamp } from "../firebase.js";
 import type { Budget, CreateBudget, UpdateBudget } from "@budget/core";
 
+const { getBudgetsPath, getBudgetPath } = userDataHelpers;
+
 export const budgetOperations = {
   /**
    * Create a new budget for a user
@@ -10,7 +12,7 @@ export const budgetOperations = {
       const budgetData = {
         name: data.name,
         description: data.description || "",
-        currency: data.currency || "USD",
+        currency: data.currency || "CAD",
         ownerId: data.ownerId,
         isActive: true,
         createdAt: Timestamp.now(),
@@ -18,7 +20,7 @@ export const budgetOperations = {
       };
 
       const docRef = await firestoreHelpers.addDoc(
-        userDataHelpers.getUserBudgetsPath(userId),
+        getBudgetsPath(),
         budgetData
       );
 
@@ -41,11 +43,9 @@ export const budgetOperations = {
   /**
    * Get a specific budget by ID
    */
-  async getBudget(userId: string, budgetId: string): Promise<Budget | null> {
+  async getBudget(budgetId: string): Promise<Budget | null> {
     try {
-      const doc = await firestoreHelpers.getDoc(
-        userDataHelpers.getUserBudgetPath(userId, budgetId)
-      );
+      const doc = await firestoreHelpers.getDoc(getBudgetPath(budgetId));
 
       if (!doc.exists()) {
         return null;
@@ -77,13 +77,10 @@ export const budgetOperations = {
    */
   async getUserBudgets(userId: string): Promise<Budget[]> {
     try {
-      const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getUserBudgetsPath(userId),
-        [
-          firestoreHelpers.where("isActive", "==", true),
-          firestoreHelpers.orderBy("createdAt", "desc"),
-        ]
-      );
+      const snapshot = await firestoreHelpers.getDocs("budgets", [
+        firestoreHelpers.where("isActive", "==", true),
+        firestoreHelpers.orderBy("createdAt", "desc"),
+      ]);
 
       return snapshot.docs.map((doc) => {
         const data = doc.data();
@@ -113,10 +110,8 @@ export const budgetOperations = {
     updates: UpdateBudget
   ): Promise<Budget> {
     try {
-      const budgetPath = userDataHelpers.getUserBudgetPath(userId, budgetId);
-
       // First verify the budget exists and is active
-      const existingBudget = await this.getBudget(userId, budgetId);
+      const existingBudget = await this.getBudget(budgetId);
       if (!existingBudget) {
         throw new Error("Budget not found");
       }
@@ -126,7 +121,7 @@ export const budgetOperations = {
         updatedAt: Timestamp.now(),
       };
 
-      await firestoreHelpers.updateDoc(budgetPath, updateData);
+      await firestoreHelpers.updateDoc(getBudgetPath(budgetId), updateData);
 
       return {
         id: existingBudget.id,
@@ -150,11 +145,9 @@ export const budgetOperations = {
   /**
    * Soft delete a budget (set isActive to false)
    */
-  async deleteBudget(userId: string, budgetId: string): Promise<void> {
+  async deleteBudget(budgetId: string): Promise<void> {
     try {
-      const budgetPath = userDataHelpers.getUserBudgetPath(userId, budgetId);
-
-      await firestoreHelpers.updateDoc(budgetPath, {
+      await firestoreHelpers.updateDoc(getBudgetPath(budgetId), {
         isActive: false,
         updatedAt: Timestamp.now(),
       });
@@ -167,14 +160,8 @@ export const budgetOperations = {
   /**
    * Subscribe to budget changes in real-time
    */
-  onBudgetChange(
-    userId: string,
-    budgetId: string,
-    callback: (budget: Budget | null) => void
-  ) {
-    const budgetPath = userDataHelpers.getUserBudgetPath(userId, budgetId);
-
-    return firestoreHelpers.onDocSnapshot(budgetPath, (doc) => {
+  onBudgetChange(budgetId: string, callback: (budget: Budget | null) => void) {
+    return firestoreHelpers.onDocSnapshot(getBudgetPath(budgetId), (doc) => {
       if (!doc.exists()) {
         callback(null);
         return;
@@ -202,11 +189,9 @@ export const budgetOperations = {
   /**
    * Subscribe to user's budgets list in real-time
    */
-  onUserBudgetsChange(userId: string, callback: (budgets: Budget[]) => void) {
-    const budgetsPath = userDataHelpers.getUserBudgetsPath(userId);
-
+  onUserBudgetsChange(callback: (budgets: Budget[]) => void) {
     return firestoreHelpers.onCollectionSnapshot(
-      budgetsPath,
+      getBudgetsPath(),
       (docs) => {
         const budgets = docs
           .filter((doc) => doc.isActive)

@@ -27,12 +27,14 @@ interface BudgetBasicsFormProps {
   values?: CreateBudget;
   onChange?: (field: keyof CreateBudget, value: string) => void;
   onValidityChange?: (isValid: boolean) => void;
+  disabled?: boolean;
 }
 
 const BudgetBasicsForm = ({
   values: externalValues,
   onChange: externalOnChange,
   onValidityChange,
+  disabled = false,
 }: BudgetBasicsFormProps = {}) => {
   console.log(externalValues);
   const form = useForm({
@@ -130,6 +132,7 @@ const BudgetBasicsForm = ({
                       aria-invalid={isInvalid}
                       placeholder="Shared Home Expenses"
                       autoComplete="off"
+                      disabled={disabled}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
@@ -159,6 +162,7 @@ const BudgetBasicsForm = ({
                       placeholder="Keeping track of shared expenses for cleaning supplies, property taxes, management fees, etc."
                       autoComplete="off"
                       className="resize-none"
+                      disabled={disabled}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
@@ -181,6 +185,7 @@ const BudgetBasicsForm = ({
                       onValueChange={(value) =>
                         handleFieldChange("currency", value)
                       }
+                      disabled={disabled}
                     >
                       <SelectTrigger
                         id={field.name}

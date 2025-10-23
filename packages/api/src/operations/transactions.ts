@@ -60,11 +60,7 @@ export const transactionOperations = {
       });
 
       const docRef = await firestoreHelpers.addDoc(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         transactionData
       );
 
@@ -108,11 +104,7 @@ export const transactionOperations = {
       });
 
       const docRef = await firestoreHelpers.addDoc(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         transactionData
       );
 
@@ -158,11 +150,7 @@ export const transactionOperations = {
       });
 
       const docRef = await firestoreHelpers.addDoc(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         transactionData
       );
 
@@ -196,7 +184,7 @@ export const transactionOperations = {
     transactionId: string
   ): Promise<Transaction | null> {
     try {
-      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions")}/${transactionId}`;
       const doc = await firestoreHelpers.getDoc(transactionPath);
 
       if (!doc.exists()) {
@@ -231,11 +219,7 @@ export const transactionOperations = {
           ];
 
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         constraints
       );
 
@@ -272,11 +256,7 @@ export const transactionOperations = {
           ];
 
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         constraints
       );
 
@@ -300,11 +280,7 @@ export const transactionOperations = {
   ): Promise<Transaction[]> {
     try {
       const snapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         [
           firestoreHelpers.where("date", ">=", Timestamp.fromDate(startDate)),
           firestoreHelpers.where("date", "<=", Timestamp.fromDate(endDate)),
@@ -333,11 +309,7 @@ export const transactionOperations = {
     try {
       // Query for transactions where channelId matches (income/expense)
       const directSnapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         [
           firestoreHelpers.where("channelId", "==", channelId),
           firestoreHelpers.orderBy("date", "desc"),
@@ -346,11 +318,7 @@ export const transactionOperations = {
 
       // Query for transfers where source channel matches
       const sourceSnapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         [
           firestoreHelpers.where("sourceChannelId", "==", channelId),
           firestoreHelpers.orderBy("date", "desc"),
@@ -359,11 +327,7 @@ export const transactionOperations = {
 
       // Query for transfers where destination channel matches
       const destSnapshot = await firestoreHelpers.getDocs(
-        userDataHelpers.getBudgetSubcollectionPath(
-          userId,
-          budgetId,
-          "transactions"
-        ),
+        userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions"),
         [
           firestoreHelpers.where("destinationChannelId", "==", channelId),
           firestoreHelpers.orderBy("date", "desc"),
@@ -440,7 +404,7 @@ export const transactionOperations = {
     updates: UpdateIncomeTransaction
   ): Promise<IncomeTransaction> {
     try {
-      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions")}/${transactionId}`;
 
       // Verify transaction exists and is income type
       const existingTransaction = await this.getTransaction(
@@ -487,7 +451,7 @@ export const transactionOperations = {
     updates: UpdateExpenseTransaction
   ): Promise<ExpenseTransaction> {
     try {
-      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions")}/${transactionId}`;
 
       // Verify transaction exists and is expense type
       const existingTransaction = await this.getTransaction(
@@ -534,7 +498,7 @@ export const transactionOperations = {
     updates: UpdateTransferTransaction
   ): Promise<TransferTransaction> {
     try {
-      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions")}/${transactionId}`;
 
       // Verify transaction exists and is transfer type
       const existingTransaction = await this.getTransaction(
@@ -580,7 +544,7 @@ export const transactionOperations = {
     transactionId: string
   ): Promise<void> {
     try {
-      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+      const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions")}/${transactionId}`;
       await firestoreHelpers.deleteDoc(transactionPath);
     } catch (error) {
       console.error("Error deleting transaction:", error);
@@ -651,7 +615,7 @@ export const transactionOperations = {
     transactionId: string,
     callback: (transaction: Transaction | null) => void
   ) {
-    const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(userId, budgetId, "transactions")}/${transactionId}`;
+    const transactionPath = `${userDataHelpers.getBudgetSubcollectionPath(budgetId, "transactions")}/${transactionId}`;
 
     return firestoreHelpers.onDocSnapshot(transactionPath, (doc) => {
       if (!doc.exists()) {
@@ -673,7 +637,6 @@ export const transactionOperations = {
     limit?: number
   ) {
     const transactionsPath = userDataHelpers.getBudgetSubcollectionPath(
-      userId,
       budgetId,
       "transactions"
     );
@@ -712,7 +675,6 @@ export const transactionOperations = {
     limit?: number
   ) {
     const transactionsPath = userDataHelpers.getBudgetSubcollectionPath(
-      userId,
       budgetId,
       "transactions"
     );
